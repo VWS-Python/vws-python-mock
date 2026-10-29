@@ -1,0 +1,300 @@
+Running a server in containers
+==============================
+
+You can run a Mock VWS instance using Docker or Apple's `container`_ CLI.
+Both use the same published images.
+
+This allows you to run tests against a mock VWS instance regardless of the language or tooling you are using.
+
+Running the mock
+----------------
+
+There are three containers required.
+One container mocks the VWS services, one container mocks the VWQ services and one container provides a shared target manager backend.
+
+Each of these containers run their services on port 5000.
+
+The VWS and VWQ containers must point to the target manager container using the :envvar:`TARGET_MANAGER_BASE_URL` variable.
+
+.. _creating-containers:
+
+Creating containers with Docker
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Docker users can run the commands below directly.
+For a deployment using Apple's CLI directly, follow :ref:`apple-container-setup`.
+
+.. code-block:: console
+
+   $ docker network create -d bridge vws-bridge-network
+   $ docker run \
+       --detach \
+       --publish 5005:5000 \
+       --name vuforia-target-manager-mock \
+       --network vws-bridge-network \
+       ghcr.io/vws-python/vuforia-target-manager-mock
+   $ docker run \
+       --detach \
+       --publish 5006:5000 \
+       -e TARGET_MANAGER_BASE_URL=http://vuforia-target-manager-mock:5000 \
+       -e VWS_BASE_URL=http://127.0.0.1:5006 \
+       --network vws-bridge-network \
+       ghcr.io/vws-python/vuforia-vws-mock
+   $ docker run \
+       --detach \
+       --publish 5007:5000 \
+       -e TARGET_MANAGER_BASE_URL=http://vuforia-target-manager-mock:5000 \
+       --network vws-bridge-network \
+       ghcr.io/vws-python/vuforia-vwq-mock
+
+The VWS container uses :envvar:`VWS_BASE_URL` to generate report download URLs.
+Set it to the URL clients use to reach the published VWS port.
+For clients on another machine, replace ``http://127.0.0.1:5006`` with an address those clients can reach.
+
+
+.. _apple-container-setup:
+
+Creating containers with Apple container
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This setup requires a Mac with Apple silicon and macOS 26 or later, Apple's ``container`` CLI 1.5.0 or later, and ``jq`` to read the container's address.
+Install the runtime, start its services, and install the recommended Linux kernel:
+
+.. code-block:: console
+
+   $ brew install container jq
+   $ container system start --disable-kernel-install
+   $ container system kernel set --recommended
+
+Allow Local Network access for ``container-runtime-linux`` when macOS prompts.
+If requests to a published port reset, check this permission in System Settings → Privacy & Security → Local Network, then restart the container services.
+
+Create a network and start the target manager first.
+Read its IP address on that network for the VWS and VWQ services to use:
+
+.. code-block:: console
+
+   $ container network create vws-bridge-network
+   $ container run \
+       --detach \
+       --publish 127.0.0.1:5005:5000 \
+       --name vuforia-target-manager-mock \
+       --network vws-bridge-network \
+       ghcr.io/vws-python/vuforia-target-manager-mock
+   $ TARGET_MANAGER_IP="$(container inspect vuforia-target-manager-mock | jq -er '.[0].status.networks[0].ipv4Address | split("/")[0]')"
+   $ export TARGET_MANAGER_BASE_URL="http://$TARGET_MANAGER_IP:5000"
+   $ container run \
+       --detach \
+       --publish 127.0.0.1:5006:5000 \
+       --name vuforia-vws-mock \
+       --env "TARGET_MANAGER_BASE_URL=$TARGET_MANAGER_BASE_URL" \
+       --env VWS_BASE_URL=http://127.0.0.1:5006 \
+       --network vws-bridge-network \
+       ghcr.io/vws-python/vuforia-vws-mock
+   $ container run \
+       --detach \
+       --publish 127.0.0.1:5007:5000 \
+       --name vuforia-vwq-mock \
+       --env "TARGET_MANAGER_BASE_URL=$TARGET_MANAGER_BASE_URL" \
+       --network vws-bridge-network \
+       ghcr.io/vws-python/vuforia-vwq-mock
+
+Using the target manager's IP avoids requiring DNS configuration for container names on this network.
+The IP lookup removes the subnet suffix returned by ``container inspect``.
+The scheme and container port are fixed, so the URL is constructed separately.
+If you recreate the target manager, read its new address and recreate VWS and VWQ with the updated ``TARGET_MANAGER_BASE_URL``.
+The host ports match the Docker example, so the HTTP examples below work with either deployment.
+``VWS_BASE_URL`` is the URL clients use to reach VWS and download recognition reports.
+
+Run each readiness probe until it exits successfully:
+
+.. code-block:: console
+
+   $ container exec vuforia-target-manager-mock python -m vws_mock_server.healthcheck
+   $ container exec vuforia-vws-mock python -m vws_mock_server.healthcheck
+   $ container exec vuforia-vwq-mock python -m vws_mock_server.healthcheck
+
+To stop and remove this deployment:
+
+.. code-block:: console
+
+   $ container rm --force vuforia-vwq-mock vuforia-vws-mock vuforia-target-manager-mock
+   $ container network rm vws-bridge-network
+
+.. _container: https://github.com/apple/container
+
+
+Adding a database to the mock target manager
+--------------------------------------------
+
+When using Vuforia Web Services, it is necessary to create a database on the `Target Manager`_.
+This is a web interface which does not have an HTTP API.
+
+To mimic this functionality, this mock provides a target manager container which has an HTTP API.
+
+To add a database, make a request to the following endpoint against the target manager container:
+
+.. autoflask:: vws_mock_server.target_manager:TARGET_MANAGER_FLASK_APP
+   :endpoints: create_cloud_database
+
+For example, with either deployment above, use ``curl``:
+
+.. code-block:: console
+
+   $ curl --request POST \
+       --header "Content-Type: application/json" \
+       --data '{}' \
+       '127.0.0.1:5005/cloud_databases'
+   {
+       "database_id": "ca6e48ed25a340d998905ac59747a1f8",
+       "database_name": "e515df24ba944f43b8f7969bc98af107",
+       "server_access_key": "cb1759871a504875ab5f96d6db5ff79b",
+       "server_secret_key": "9b8533d912ad4aa79cb61b6ee197ece2",
+       "client_access_key": "2d61c1d17bb94694bee77c1f1f41e5d9",
+       "client_secret_key": "b73f8170cf7d42728fa8ce66221ad147",
+       "state_name": "WORKING",
+       "database_type_name": "CLOUD_RECO",
+       "targets": [],
+       "request_quota": 100000,
+       "reco_threshold": 1000,
+       "current_month_recos": 0,
+       "previous_month_recos": 0,
+       "total_recos": 0,
+       "target_quota": 1000,
+       "requests_per_second_limit": null,
+       "request_rate_limits": null
+   }
+
+Deleting a database
+-------------------
+
+To delete a database use the following endpoint:
+
+.. autoflask:: vws_mock_server.target_manager:TARGET_MANAGER_FLASK_APP
+   :endpoints: delete_cloud_database
+
+Setting the recognition counts of a target
+------------------------------------------
+
+The mock does not count recognitions, because the counts which the real Vuforia Web Services report lag behind its queries by longer than a test runs.
+To make the target summary report and the reco counts report show non-zero counts, set the counts with the following endpoint:
+
+.. autoflask:: vws_mock_server.target_manager:TARGET_MANAGER_FLASK_APP
+   :endpoints: set_target_recognition_counts
+
+
+.. _Target Manager: https://developer.vuforia.com/library/vuforia-engine/getting-started/engine-developer-portal/vuforia-target-manager/
+
+
+Configuration options
+---------------------
+
+Required configuration
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. envvar:: TARGET_MANAGER_BASE_URL
+
+   This is required by the VWS mock and the VWQ mock containers.
+   This is the base URL of the target manager container as seen from the other containers.
+   It must include a scheme, for example ``http://vuforia-target-manager-mock:5000``.
+
+Optional configuration
+^^^^^^^^^^^^^^^^^^^^^^
+
+VWS and Query containers
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. envvar:: RESPONSE_DELAY_SECONDS
+
+   The number of seconds to wait before sending each response.
+
+   Default: ``0.0``
+
+Target manager container
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. envvar:: TARGET_RATER
+
+   The rater to use for target tracking ratings.
+
+   Options include:
+
+   * ``brisque``: The rating is derived using the BRISQUE algorithm.
+   * ``perfect``: The rating is always 5.
+   * ``random``: The rating is random.
+
+   Default: ``brisque``
+
+Query container
+~~~~~~~~~~~~~~~
+
+.. envvar:: QUERY_IMAGE_MATCHER
+
+   The matcher to use for the query endpoint.
+
+   Options include:
+
+   * ``exact``: The images must be exactly the same to match.
+   * ``structural_similarity``: The images must have a similar structural similarity to match.
+
+   Default: ``structural_similarity``
+
+VWS container
+~~~~~~~~~~~~~
+
+.. envvar:: PROCESSING_TIME_SECONDS
+
+   The number of seconds to process each image for.
+
+   Default: ``2.0``
+
+.. envvar:: MODEL_TARGET_TRAINING_ALLOWANCE_EXCEEDED
+
+   Whether Model Target dataset creation returns Vuforia's
+   ``TRAINING_ALLOWANCE_EXCEEDED`` response.
+
+   Default: ``false``
+
+.. envvar:: VWS_BASE_URL
+
+   The base URL which clients use to reach the VWS container.
+   The download URL of a reco counts report is built from this URL.
+
+   Default: ``https://vws.vuforia.com``
+
+.. envvar:: DUPLICATES_IMAGE_MATCHER
+
+   The matcher to use for the duplicates endpoint.
+
+   Options include:
+
+   * ``exact``: The images must be exactly the same to be duplicates.
+   * ``structural_similarity``: The images must have a similar structural similarity to be duplicates.
+
+   Default: ``structural_similarity``
+
+Building images from source
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These commands build the images with ``docker buildx``.
+
+.. code-block:: console
+
+   $ export REPOSITORY_ROOT="$PWD"
+   $ export DOCKERFILE="$REPOSITORY_ROOT/server/Dockerfile"
+
+   $ export TARGET_MANAGER_TAG=ghcr.io/vws-python/vuforia-target-manager-mock:latest
+   $ export VWS_TAG=ghcr.io/vws-python/vuforia-vws-mock:latest
+   $ export VWQ_TAG=ghcr.io/vws-python/vuforia-vwq-mock:latest
+
+   $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target target-manager --tag "$TARGET_MANAGER_TAG"
+   $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vws --tag "$VWS_TAG"
+   $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vwq --tag "$VWQ_TAG"
+
+To build the same ``Dockerfile`` stages with Apple's CLI, set the variables above and run:
+
+.. code-block:: console
+
+   $ container build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target target-manager --tag "$TARGET_MANAGER_TAG"
+   $ container build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vws --tag "$VWS_TAG"
+   $ container build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vwq --tag "$VWQ_TAG"

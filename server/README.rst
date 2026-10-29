@@ -71,3 +71,8 @@ From the workspace root, build the three service targets with the server's bake 
 The default group builds ``linux/amd64`` and ``linux/arm64`` images.
 The ``VERSION`` variable selects the version tag alongside ``latest``.
 The image names and service targets remain the same.
+
+Deployment
+----------
+
+See the `deployment guide <docs/deployment.rst>`_ for Docker and Apple container commands and service configuration.
