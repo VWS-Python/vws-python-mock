@@ -1,23 +1,16 @@
 """Choose which backends to use for the tests."""
 
-import contextlib
 import logging
 from collections.abc import Generator
 from enum import Enum
 from http import HTTPMethod
-from typing import override
 from uuid import uuid4
 
 import pytest
 import requests
-from beartype import BeartypeConf, beartype
+from beartype import beartype
 from pytest_multi_backend import backend_fixture
-from requests.exceptions import Timeout as RequestsTimeout
 from vws import VWS
-from vws.exceptions.vws_exceptions import (
-    TargetStatusNotSuccessError,
-)
-from vws.response import Response
 
 from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase, VuMarkDatabase
@@ -33,22 +26,8 @@ from vws_mock_contract_tests.utils.backend_capabilities import (
     BackendCapabilities,
 )
 from vws_mock_contract_tests.utils.cloud_databases import CreateCloudDatabase
-from vws_mock_contract_tests.utils.model_target_response_policy import (
-    handling_unexpected_model_target_responses,
-)
-from vws_mock_contract_tests.utils.model_target_retries import (
-    retrying_model_target_requests,
-)
 from vws_mock_contract_tests.utils.recognition_counts import (
     SeedRecognitionCounts,
-)
-from vws_mock_contract_tests.utils.request_timeout_policy import (
-    handling_request_timeouts,
-)
-from vws_mock_contract_tests.utils.retries import (
-    RETRY_ON_TARGET_STILL_PROCESSING,
-    retry_transient_vws_failures,
-    retrying_vws_requests,
 )
 from vws_mock_contract_tests.utils.unrouted_requests import (
     UnroutedRequests,
@@ -62,6 +41,11 @@ from vws_mock_test_backends.flask_backend import (
     send_flask_unrouted_request,
 )
 from vws_mock_test_backends.mock_databases import create_vumark_database
+from vws_mock_test_backends.real_backend import (
+    LiveVWS,
+    enable_real_model_targets,
+    enable_real_vuforia,
+)
 from vws_mock_test_backends.real_credentials import (
     get_model_target_credentials,
     get_real_cloud_database,
@@ -69,10 +53,6 @@ from vws_mock_test_backends.real_credentials import (
     get_real_inactive_vumark_database,
     get_real_vumark_database,
 )
-from vws_mock_test_backends.real_model_target_retries import (
-    REAL_MODEL_TARGET_RETRY_POLICY,
-)
-from vws_mock_test_backends.real_vws_retries import REAL_VWS_RETRYING
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
@@ -107,89 +87,6 @@ def running_in_memory_mock() -> MockVWS:
         Indexing fails if the ``MOCK`` backend is not running.
     """
     return _RUNNING_IN_MEMORY_MOCKS[0]
-
-
-@beartype
-@retry_transient_vws_failures
-def _delete_all_targets(
-    *, database_keys: CloudDatabase, base_vws_url: str
-) -> None:
-    """Delete all targets.
-
-    Args:
-        database_keys: The credentials to the Vuforia target database to delete
-            all targets in.
-        base_vws_url: The base URL of the services API for the backend.
-    """
-    vws_client = VWS(
-        server_access_key=database_keys.server_access_key,
-        server_secret_key=database_keys.server_secret_key,
-        base_vws_url=base_vws_url,
-    )
-
-    targets = vws_client.list_targets()
-
-    for target in targets:
-        vws_client.wait_for_target_processed(
-            target_id=target,
-            # Setting this to 2 is an attempt to avoid 429 Too Many Requests
-            # errors.
-            seconds_between_requests=2,
-        )
-        # Even deleted targets can be matched by a query for a few seconds so
-        # we change the target to inactive before deleting it.
-        with contextlib.suppress(TargetStatusNotSuccessError):
-            vws_client.update_target(target_id=target, active_flag=False)
-        vws_client.wait_for_target_processed(
-            target_id=target, seconds_between_requests=2
-        )
-        _delete_processed_target(vws_client=vws_client, target_id=target)
-
-
-@beartype
-@RETRY_ON_TARGET_STILL_PROCESSING
-def _delete_processed_target(*, vws_client: VWS, target_id: str) -> None:
-    """Delete a target which has just been waited on to be processed.
-
-    Args:
-        vws_client: A client for the database the target is in.
-        target_id: The ID of the target to delete.
-    """
-    vws_client.delete_target(target_id=target_id)
-
-
-@beartype
-def _handle_real_request_timeout(*, url: str, error: RequestsTimeout) -> None:
-    """Skip a shared request which timed out against the real service."""
-    del url, error
-    pytest.skip(reason="The real Vuforia service timed out.")
-
-
-@beartype
-def _enable_use_real_vuforia(
-    *,
-    working_database: CloudDatabase,
-    inactive_cloud_database: CloudDatabase,
-    vumark_vuforia_database: VuMarkCloudDatabase,
-    inactive_vumark_database: InactiveVuMarkCloudDatabase,
-    monkeypatch: pytest.MonkeyPatch,
-    base_vws_url: str,
-    base_vwq_url: str,
-) -> Generator[None]:
-    """Test against the real Vuforia."""
-    assert bool(monkeypatch)
-    assert bool(inactive_cloud_database)
-    assert bool(vumark_vuforia_database)
-    assert bool(inactive_vumark_database)
-    del base_vwq_url
-    with (
-        retrying_vws_requests(retrying=REAL_VWS_RETRYING),
-        handling_request_timeouts(handler=_handle_real_request_timeout),
-    ):
-        _delete_all_targets(
-            database_keys=working_database, base_vws_url=base_vws_url
-        )
-        yield
 
 
 @beartype
@@ -245,47 +142,6 @@ def _enable_use_mock_vuforia(
 
 
 @beartype
-def _handle_real_model_target_response(
-    *,
-    response: Response | requests.Response,
-) -> None:
-    """Skip an unexpected rejection by the shared real account's allowance."""
-    if "TRAINING_ALLOWANCE_EXCEEDED" in response.text:
-        pytest.skip(
-            reason=(
-                "The Vuforia account is out of Model Target training "
-                "allowance - this is not a failure of the code under test."
-            ),
-        )
-
-
-@beartype
-def _enable_use_real_model_target_vuforia(
-    *,
-    monkeypatch: pytest.MonkeyPatch,
-    base_vws_url: str,
-) -> Generator[None]:
-    """Test against the real Model Target Web API.
-
-    Safe requests are retried past a transient gateway failure, which
-    the load balancer in front of the real Model Target Web API
-    occasionally returns for a request which is not at fault.
-    """
-    del base_vws_url
-    assert bool(monkeypatch)
-    with (
-        retrying_model_target_requests(
-            retrying=REAL_MODEL_TARGET_RETRY_POLICY,
-        ),
-        handling_request_timeouts(handler=_handle_real_request_timeout),
-        handling_unexpected_model_target_responses(
-            handler=_handle_real_model_target_response,
-        ),
-    ):
-        yield
-
-
-@beartype
 def _enable_use_mock_model_target_vuforia(
     *,
     monkeypatch: pytest.MonkeyPatch,
@@ -332,34 +188,11 @@ def _credential_backend(*, request: pytest.FixtureRequest) -> VuforiaBackend:
     return VuforiaBackend.MOCK
 
 
-@beartype(conf=BeartypeConf(is_pep484_tower=True))
-class _LiveVWS(VWS):
-    """A client with a polling default suited to the live contract
-    tests.
-    """
-
-    # Preserve the optional parameters of the upstream VWS API.
-    @override
-    def wait_for_target_processed(
-        self,
-        *,
-        target_id: str,
-        seconds_between_requests: float = 2.0,  # noqa: NOD001
-        timeout_seconds: float = 60 * 5,  # noqa: NOD001
-    ) -> None:
-        """Poll at the cleanup interval while retaining explicit overrides."""
-        super().wait_for_target_processed(
-            target_id=target_id,
-            seconds_between_requests=seconds_between_requests,
-            timeout_seconds=timeout_seconds,
-        )
-
-
 @pytest.fixture(name="vws_client_class")
 def fixture_vws_client_class(*, request: pytest.FixtureRequest) -> type[VWS]:
     """Use slower polling only for clients of the live Vuforia service."""
     if _credential_backend(request=request) == VuforiaBackend.REAL:
-        return _LiveVWS
+        return LiveVWS
     return VWS
 
 
@@ -417,13 +250,13 @@ def fixture_vumark_vuforia_database(
 # arguments of the setup functions are still checked where they are
 # bound.
 _SETUP_FUNCTIONS = {
-    VuforiaBackend.REAL: _enable_use_real_vuforia,
+    VuforiaBackend.REAL: enable_real_vuforia,
     VuforiaBackend.MOCK: _enable_use_mock_vuforia,
     VuforiaBackend.FLASK_IN_PROCESS: enable_flask_in_process,
 }
 
 _MODEL_TARGET_SETUP_FUNCTIONS = {
-    VuforiaBackend.REAL: _enable_use_real_model_target_vuforia,
+    VuforiaBackend.REAL: enable_real_model_targets,
     VuforiaBackend.MOCK: _enable_use_mock_model_target_vuforia,
     VuforiaBackend.FLASK_IN_PROCESS: enable_flask_model_targets,
 }
