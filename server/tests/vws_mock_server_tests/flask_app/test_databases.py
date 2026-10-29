@@ -10,11 +10,11 @@ import requests
 from pydantic import JsonValue, TypeAdapter
 from vws import VWS, CloudRecoService
 
-from mock_vws._flask_server.target_manager import (
-    TARGET_MANAGER,
-)
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.target import VuMarkTarget
+from vws_mock_server.target_manager import (
+    TARGET_MANAGER,
+)
 
 
 def test_add_cloud_database_duplicate_keys(target_manager_url: str) -> None:

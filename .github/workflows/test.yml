@@ -136,9 +136,9 @@ jobs:
           - tests/mock_vws/requests_mock
           - tests/mock_vws/respx_mock
           - tests/mock_vws/httpx2_mock
-          - tests/mock_vws/flask_app
-          - tests/mock_vws/test_healthcheck.py
-          - tests/mock_vws/test_docker.py
+          - server/tests/vws_mock_server_tests/flask_app
+          - server/tests/vws_mock_server_tests/test_healthcheck.py
+          - server/tests/vws_mock_server_tests/test_docker.py
           - README.rst
           - docs/
 
@@ -170,7 +170,7 @@ jobs:
       # We have seen issues with running out of disk space on test_docker
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
-        if: matrix.ci_pattern == 'tests/mock_vws/test_docker.py'
+        if: matrix.ci_pattern == 'server/tests/vws_mock_server_tests/test_docker.py'
         with:
           # All of these default to true (meaning they are removed).
           docker-images: false

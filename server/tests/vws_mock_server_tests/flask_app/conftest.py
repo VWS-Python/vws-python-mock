@@ -8,12 +8,12 @@ import responses
 from beartype import beartype
 from requests_mock_flask import add_flask_app_to_mock
 
-from mock_vws._flask_server.target_manager import (
+from vws_mock_server.target_manager import (
     TARGET_MANAGER,
     TARGET_MANAGER_FLASK_APP,
 )
-from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
-from mock_vws._flask_server.vws import VWS_FLASK_APP
+from vws_mock_server.vwq import CLOUDRECO_FLASK_APP
+from vws_mock_server.vws import VWS_FLASK_APP
 
 
 @beartype

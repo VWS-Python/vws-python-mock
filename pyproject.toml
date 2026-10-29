@@ -210,6 +210,7 @@ lint.per-file-ignores."doccmd_*.py" = [
     # Allow asserts in docs.
     "S101",
 ]
+lint.per-file-ignores."server/tests/**" = [ "S101", "S105", "S106" ]
 lint.per-file-ignores."test-backends/src/**" = [ "S101", "S105", "S106" ]
 lint.per-file-ignores."tests/**" = [
     # Allow asserts in tests.
@@ -375,6 +376,7 @@ ignore = [
     "prek.toml",
     "secrets.tar.gpg",
     "server/Dockerfile",
+    "server/tests/**",
     "spelling_private_dict.txt",
     "styles/snapper/*.yml",
     "tests",
@@ -514,14 +516,14 @@ markers = [
     "requires_docker_build",
 ]
 # Legacy import modules keep the existing CI partitions stable.
-norecursedirs = [ "contract-tests", "server", "test-backends" ]
+norecursedirs = [ "contract-tests", "test-backends" ]
 # Options for pytest-retry.
 retries = "10"
 retry_delay = "10"
 xfail_strict = true
 
 [tool.coverage]
-run.source = [ "ci/", "contract-tests/src/", "server/src/", "src/", "test-backends/src/", "tests/" ]
+run.source = [ "ci/", "contract-tests/src/", "server/src/", "server/tests/", "src/", "test-backends/src/", "tests/" ]
 # Import-only compatibility modules contain no assertions or backend logic.
 # Their authoritative implementations remain subject to full coverage.
 run.omit = [
@@ -543,6 +545,7 @@ run.omit = [
     "tests/mock_vws/utils/retries.py",
     "tests/mock_vws/utils/too_many_requests.py",
     "tests/mock_vws/utils/unrouted_requests.py",
+    "tests/mock_vws/utils/usage_test_helpers.py",
 ]
 run.branch = true
 run.parallel = true

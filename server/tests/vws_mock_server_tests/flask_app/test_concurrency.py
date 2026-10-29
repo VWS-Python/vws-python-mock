@@ -20,11 +20,11 @@ from PIL import Image
 from pydantic import JsonValue, TypeAdapter
 from werkzeug.serving import BaseWSGIServer, make_server
 
-from mock_vws._flask_server.target_manager import (
+from mock_vws.database import CloudDatabase
+from vws_mock_server.target_manager import (
     TARGET_MANAGER,
     TARGET_MANAGER_FLASK_APP,
 )
-from mock_vws.database import CloudDatabase
 
 _NUM_WRITER_THREADS = 4
 _NUM_READER_THREADS = 4

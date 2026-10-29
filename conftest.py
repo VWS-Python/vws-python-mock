@@ -15,3 +15,10 @@ pytest_collect_file = Sybil(
     ],
     patterns=["*.rst", "*.py"],
 ).pytest()
+
+
+# Load shared fixtures for both core and server tests.
+pytest_plugins = [
+    "vws_mock_contract_tests.fixtures.plugin",
+    "vws_mock_test_backends.vuforia_backends",
+]
