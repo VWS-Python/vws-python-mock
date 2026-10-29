@@ -1,9 +1,7 @@
 VWS mock server
 ===============
 
-This separately buildable project owns server code while it is prepared for extraction.
-The health probe is migrated first.
-The three Flask services follow in separate changes.
+This separately buildable project contains the VWS, VWQ and target-manager Flask services and their health probe.
 Shared models, validation and API behavior stay in ``vws-python-mock``.
 
 Build and install
@@ -25,6 +23,14 @@ The default core installation does not require Flask.
 The server consumes public core models and ``mock_vws.server_api``.
 Its runtime dependencies do not include the contract suite or test adapters.
 Consumers load those development dependencies explicitly.
+
+Services
+--------
+
+Each service runs in its own container and listens on port 5000.
+The service modules are ``vws_mock_server.vws``, ``vws_mock_server.vwq`` and ``vws_mock_server.target_manager``.
+The published image names, host environment variables and three-service deployment remain unchanged.
+Compatibility modules under ``mock_vws._flask_server`` forward to these implementations when the server extra is installed.
 
 Health checks
 -------------
