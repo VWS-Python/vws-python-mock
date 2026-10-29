@@ -146,9 +146,7 @@ def _make_respx_callback(
 def start_respx_router(
     *,
     mock_vws_api: _APIHandler,
-    mock_vwq_api: _APIHandler,
     base_vws_url: str,
-    base_vwq_url: str,
     response_delay_seconds: float,
     sleep_fn: Callable[[float], None],
     real_http: bool,
@@ -160,9 +158,7 @@ def start_respx_router(
 
     Args:
         mock_vws_api: The VWS API handler.
-        mock_vwq_api: The VWQ API handler.
         base_vws_url: The base URL for the VWS API.
-        base_vwq_url: The base URL for the VWQ API.
         response_delay_seconds: The number of seconds to delay responses.
         sleep_fn: The function to use for sleeping during delays.
         real_http: Whether to pass through unmatched requests.
@@ -187,10 +183,7 @@ def start_respx_router(
             using=using,
         )
 
-    for api, base_url in (
-        (mock_vws_api, base_vws_url),
-        (mock_vwq_api, base_vwq_url),
-    ):
+    for api, base_url in ((mock_vws_api, base_vws_url),):
         base_path = urlparse(url=base_url).path.rstrip("/")
         for route in api.routes:
             url_pattern = base_url.rstrip("/") + route.path_pattern + "$"

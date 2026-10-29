@@ -25,8 +25,8 @@ Create environment variable files for secrets:
    $ ...
 
 Populate every variable listed in :file:`vuforia_secrets.env.example`.
-Each file needs distinct active Cloud database credentials so concurrent jobs do not modify the same database.
-The files can share the inactive Cloud, active and inactive VuMark, and Model Target credentials.
+The files contain active and inactive VuMark credentials and separate Model Target credentials.
+Cloud image database credentials are no longer provisioned or used.
 Add at least as many consecutively numbered files, starting at zero, as there are builds in the GitHub test matrix.
 The archive contains 200 files, numbered 0 through 199.
 Each matrix job selects the file matching its zero-based job index, without wrapping to an earlier file.

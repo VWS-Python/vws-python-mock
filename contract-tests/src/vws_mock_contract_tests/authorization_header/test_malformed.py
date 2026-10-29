@@ -5,16 +5,13 @@ from http import HTTPStatus
 from vws_auth_tools import rfc_1123_date
 
 from vws_mock_contract_tests.utils import Endpoint
-from vws_mock_contract_tests.utils.assertions import (
-    assert_vwq_failure,
-    assert_vws_failure,
-)
+from vws_mock_contract_tests.utils.assertions import assert_vws_failure
 from vws_mock_contract_tests.utils.too_many_requests import (
     handle_server_errors,
 )
 
 
-def test_one_part_no_space(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_one_part_no_space(endpoint: Endpoint) -> None:
     """A valid authorization string is two "parts" when split on a
     space.
 
@@ -23,17 +20,12 @@ def test_one_part_no_space(endpoint: Endpoint, base_vwq_url: str) -> None:
     ``UNAUTHORIZED`` response is returned.
     """
     date = rfc_1123_date()
-
-    # We use "VWS" as this is the first part of a valid authorization
-    # string, but really any string which is not two parts when split on a
-    # space will do.
     authorization_string = "VWS"
     new_headers = {
         **endpoint.headers,
         "Authorization": authorization_string,
         "Date": date,
     }
-
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,
         path_url=endpoint.path_url,
@@ -45,22 +37,8 @@ def test_one_part_no_space(endpoint: Endpoint, base_vwq_url: str) -> None:
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
     )
-
     response = new_endpoint.send()
     handle_server_errors(response=response)
-
-    if endpoint.base_url == base_vwq_url:
-        assert_vwq_failure(
-            response=response,
-            status_code=HTTPStatus.UNAUTHORIZED,
-            content_type="text/plain;charset=iso-8859-1",
-            cache_control=None,
-            www_authenticate="KWS",
-            connection="keep-alive",
-        )
-        assert response.text == "Malformed authorization header."
-        return
-
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.BAD_REQUEST,
@@ -68,7 +46,7 @@ def test_one_part_no_space(endpoint: Endpoint, base_vwq_url: str) -> None:
     )
 
 
-def test_one_part_with_space(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_one_part_with_space(endpoint: Endpoint) -> None:
     """A valid authorization string is two "parts" when split on a
     space.
 
@@ -83,7 +61,6 @@ def test_one_part_with_space(endpoint: Endpoint, base_vwq_url: str) -> None:
         "Authorization": authorization_string,
         "Date": date,
     }
-
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,
         path_url=endpoint.path_url,
@@ -95,22 +72,8 @@ def test_one_part_with_space(endpoint: Endpoint, base_vwq_url: str) -> None:
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
     )
-
     response = new_endpoint.send()
     handle_server_errors(response=response)
-
-    if endpoint.base_url == base_vwq_url:
-        assert_vwq_failure(
-            response=response,
-            status_code=HTTPStatus.UNAUTHORIZED,
-            content_type="text/plain;charset=iso-8859-1",
-            cache_control=None,
-            www_authenticate="KWS",
-            connection="keep-alive",
-        )
-        assert response.text == "Malformed authorization header."
-        return
-
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.BAD_REQUEST,
@@ -118,20 +81,18 @@ def test_one_part_with_space(endpoint: Endpoint, base_vwq_url: str) -> None:
     )
 
 
-def test_missing_signature(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_missing_signature(endpoint: Endpoint) -> None:
     """
     If a signature is missing `Authorization` header is given, a
     ``BAD_REQUEST`` response is given.
     """
     date = rfc_1123_date()
-
     authorization_string = "VWS foobar:"
     new_headers = {
         **endpoint.headers,
         "Authorization": authorization_string,
         "Date": date,
     }
-
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,
         path_url=endpoint.path_url,
@@ -143,22 +104,8 @@ def test_missing_signature(endpoint: Endpoint, base_vwq_url: str) -> None:
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
     )
-
     response = new_endpoint.send()
     handle_server_errors(response=response)
-
-    if endpoint.base_url == base_vwq_url:
-        assert_vwq_failure(
-            response=response,
-            status_code=HTTPStatus.UNAUTHORIZED,
-            content_type="text/plain;charset=iso-8859-1",
-            cache_control=None,
-            www_authenticate="KWS",
-            connection="keep-alive",
-        )
-        assert response.text == "Malformed authorization header."
-        return
-
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.BAD_REQUEST,

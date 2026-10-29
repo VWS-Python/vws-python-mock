@@ -7,14 +7,9 @@ from functools import cached_property
 from typing import TypeIs
 
 from beartype import beartype
-from pydantic import JsonValue, TypeAdapter
+from pydantic import JsonValue
 
-from mock_vws._base64_decoding import decode_base64
 from mock_vws._database_matchers import AnyDatabase
-
-_OPTIONAL_STRING_ADAPTER = TypeAdapter[str | None](
-    type=str | None,
-)
 
 
 @beartype
@@ -48,18 +43,12 @@ class ValidatorContext:
         database: The database which the request's server keys belong to.
         mandatory_keys: Keys which the route requires in the request body.
         optional_keys: Keys which the route allows in the request body.
-        allowed_for_inactive_cloud_project: Whether the route works against
-            an inactive cloud database.
-
-    Attributes:
         request_path: The path of the request.
         request_headers: The headers sent with the request.
         request_body: The body of the request.
         database: The database which the request's server keys belong to.
         mandatory_keys: Keys which the route requires in the request body.
         optional_keys: Keys which the route allows in the request body.
-        allowed_for_inactive_cloud_project: Whether the route works against
-            an inactive cloud database.
     """
 
     request_path: str
@@ -68,7 +57,6 @@ class ValidatorContext:
     database: AnyDatabase
     mandatory_keys: frozenset[str]
     optional_keys: frozenset[str]
-    allowed_for_inactive_cloud_project: bool
 
     @cached_property
     def request_json(self) -> dict[str, JsonValue]:
@@ -91,23 +79,3 @@ class ValidatorContext:
             msg = "The request body is not a JSON object."
             raise TypeError(msg)
         return parsed
-
-    @cached_property
-    def decoded_image(self) -> bytes | None:
-        """The base64 decoded image given in the request body, or ``None``
-        if no image was given.
-
-        The image data type and encoding validators run before any validator
-        which reads this, so by the time a validator does read it, the image
-        is known to be a base64 string.
-
-        Raises:
-            binascii.Error: The image cannot be base64 decoded.
-        """
-        image = _OPTIONAL_STRING_ADAPTER.validate_python(
-            self.request_json.get("image"),
-            strict=True,
-        )
-        if image is None:
-            return None
-        return decode_base64(encoded_data=image)

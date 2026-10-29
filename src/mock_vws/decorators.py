@@ -1,6 +1,5 @@
 """Decorators for using the mock."""
 
-import copy
 import functools
 import re
 import time
@@ -25,37 +24,22 @@ from mock_vws._mock_common import (
     MissingSchemeError,
     RequestData,
 )
-from mock_vws._requests_mock_server.mock_web_query_api import (
-    MockVuforiaWebQueryAPI,
-)
 from mock_vws._requests_mock_server.mock_web_services_api import (
     MockVuforiaWebServicesAPI,
 )
 from mock_vws._respx_mock_server.decorators import start_respx_router
-from mock_vws.cloud_query import CloudQueryFailureResponse
-from mock_vws.database import CloudDatabase, VuMarkDatabase
-from mock_vws.image_matchers import (
-    ImageMatcher,
-    StructuralSimilarityMatcher,
-)
+from mock_vws.database import VuMarkDatabase
 from mock_vws.model_target import (
     ModelTargetFailureResponse,
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
 from mock_vws.target_manager import TargetManager
-from mock_vws.target_raters import (
-    BrisqueTargetTrackingRater,
-    TargetTrackingRater,
-)
 from mock_vws.vumark import VuMarkGenerationFailure
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _MockCallback = Callable[[RequestData], _ResponseType]
 _ResponsesCallback = Callable[[PreparedRequest], _ResponseType]
-
-_STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
-_BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
@@ -68,16 +52,11 @@ class _MockVWSOptions:
     """
 
     base_vws_url: str
-    base_vwq_url: str
-    cloud_query_failure_response: CloudQueryFailureResponse | None
-    duplicate_match_checker: ImageMatcher
-    query_match_checker: ImageMatcher
     processing_time_seconds: int | float
     model_target_generation_failure: ModelTargetGenerationFailure | None
     model_target_failure_response: ModelTargetFailureResponse | None
     model_target_generation_warning: ModelTargetGenerationWarning | None
     model_target_training_allowance_exceeded: bool
-    target_tracking_rater: TargetTrackingRater
     real_http: bool
     response_delay_seconds: float
     sleep_fn: Callable[[float], None]
@@ -106,10 +85,6 @@ class MockVWS:
         self,
         *,
         base_vws_url: str = "https://vws.vuforia.com",
-        base_vwq_url: str = "https://cloudreco.vuforia.com",
-        cloud_query_failure_response: CloudQueryFailureResponse | None = None,
-        duplicate_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
-        query_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
         processing_time_seconds: float = 2.0,
         model_target_generation_failure: (
             ModelTargetGenerationFailure | None
@@ -121,7 +96,6 @@ class MockVWS:
             ModelTargetGenerationWarning | None
         ) = None,
         model_target_training_allowance_exceeded: bool = False,
-        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         real_http: bool = False,
         response_delay_seconds: float = 0.0,
         sleep_fn: Callable[[float], None] = time.sleep,
@@ -138,7 +112,7 @@ class MockVWS:
                 See
                 https://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests.
             processing_time_seconds: The number of seconds to process each
-                image for.
+                Model Target dataset for.
                 In the real Vuforia Web Services, this is not deterministic.
             model_target_generation_failure: A failure to return after every
                 Model Target dataset finishes processing. By default, Model
@@ -155,23 +129,11 @@ class MockVWS:
                 dataset creation returns Vuforia's
                 ``TRAINING_ALLOWANCE_EXCEEDED`` response. By default, creation
                 is allowed.
-            base_vwq_url: The base URL for the VWQ API.
             base_vws_url: The base URL for the VWS API.
-            cloud_query_failure_response: A response to return for every Cloud
-                Query request, bypassing normal request validation and image
-                matching. By default, Cloud Query requests are handled
-                normally.
             vumark_generation_failure: A failure to return for every VuMark
                 generation request, bypassing normal request validation and
                 instance generation. By default, VuMark generation requests
                 are handled normally.
-            query_match_checker: A callable which takes two image values and
-                returns a match score for a query request, or ``None`` if
-                they do not match.
-            duplicate_match_checker: A callable which takes two image values
-                and returns a match score, or ``None`` if they are not
-                duplicates.
-            target_tracking_rater: A callable for rating targets for tracking.
             response_delay_seconds: The number of seconds to delay each
                 response by. This can be used to test timeout handling.
             sleep_fn: The function to use for sleeping during response
@@ -194,7 +156,7 @@ class MockVWS:
             )
             raise ValueError(msg)
 
-        for url in (base_vwq_url, base_vws_url):
+        for url in (base_vws_url,):
             parse_result = urlparse(url=url)
             if not bool(parse_result.scheme):
                 raise MissingSchemeError(url=url)
@@ -204,10 +166,6 @@ class MockVWS:
         # targets, for each call of that function.
         self._options = _MockVWSOptions(
             base_vws_url=base_vws_url,
-            base_vwq_url=base_vwq_url,
-            cloud_query_failure_response=cloud_query_failure_response,
-            duplicate_match_checker=duplicate_match_checker,
-            query_match_checker=query_match_checker,
             processing_time_seconds=processing_time_seconds,
             model_target_generation_failure=model_target_generation_failure,
             model_target_failure_response=model_target_failure_response,
@@ -215,7 +173,6 @@ class MockVWS:
             model_target_training_allowance_exceeded=(
                 model_target_training_allowance_exceeded
             ),
-            target_tracking_rater=target_tracking_rater,
             real_http=real_http,
             response_delay_seconds=response_delay_seconds,
             sleep_fn=sleep_fn,
@@ -227,51 +184,26 @@ class MockVWS:
         self._started: list[
             tuple[RequestsMock, respx.MockRouter, Httpx2Router]
         ] = []
-        self._added_cloud_databases: list[CloudDatabase] = []
         self._added_vumark_databases: list[VuMarkDatabase] = []
         self._target_manager = TargetManager()
-        self._mock_vws_api, self._mock_vwq_api = self._build_apis(
+        self._mock_vws_api = self._build_apis(
             target_manager=self._target_manager,
         )
 
     def _build_apis(
-        self,
-        *,
-        target_manager: TargetManager,
-    ) -> tuple[MockVuforiaWebServicesAPI, MockVuforiaWebQueryAPI]:
-        """Build fakes of the Vuforia APIs, backed by a target manager.
-
-        Args:
-            target_manager: The target manager which the fakes use.
-
-        Returns:
-            A fake of the VWS API and a fake of the VWQ API.
-        """
+        self, *, target_manager: TargetManager
+    ) -> MockVuforiaWebServicesAPI:
+        """Build the retained API handlers backed by a target manager."""
         options = self._options
-        mock_vws_api = MockVuforiaWebServicesAPI(
+        return MockVuforiaWebServicesAPI(
             target_manager=target_manager,
-            base_vws_url=options.base_vws_url,
             processing_time_seconds=options.processing_time_seconds,
-            model_target_generation_failure=(
-                options.model_target_generation_failure
-            ),
+            model_target_generation_failure=options.model_target_generation_failure,
             model_target_failure_response=options.model_target_failure_response,
-            model_target_generation_warning=(
-                options.model_target_generation_warning
-            ),
-            model_target_training_allowance_exceeded=(
-                options.model_target_training_allowance_exceeded
-            ),
-            duplicate_match_checker=options.duplicate_match_checker,
-            target_tracking_rater=options.target_tracking_rater,
+            model_target_generation_warning=options.model_target_generation_warning,
+            model_target_training_allowance_exceeded=options.model_target_training_allowance_exceeded,
             vumark_generation_failure=options.vumark_generation_failure,
         )
-        mock_vwq_api = MockVuforiaWebQueryAPI(
-            target_manager=target_manager,
-            query_match_checker=options.query_match_checker,
-            failure_response=options.cloud_query_failure_response,
-        )
-        return mock_vws_api, mock_vwq_api
 
     @contextmanager
     def _fresh_state(self) -> Generator[None]:
@@ -285,16 +217,11 @@ class MockVWS:
         """
         original_target_manager = self._target_manager
         original_mock_vws_api = self._mock_vws_api
-        original_mock_vwq_api = self._mock_vwq_api
 
         self._target_manager = TargetManager()
-        self._mock_vws_api, self._mock_vwq_api = self._build_apis(
+        self._mock_vws_api = self._build_apis(
             target_manager=self._target_manager,
         )
-        for cloud_database in self._added_cloud_databases:
-            self._target_manager.add_cloud_database(
-                cloud_database=cloud_database,
-            )
         for vumark_database in self._added_vumark_databases:
             self._target_manager.add_vumark_database(
                 vumark_database=vumark_database,
@@ -305,22 +232,6 @@ class MockVWS:
         finally:
             self._target_manager = original_target_manager
             self._mock_vws_api = original_mock_vws_api
-            self._mock_vwq_api = original_mock_vwq_api
-
-    def add_cloud_database(self, cloud_database: CloudDatabase) -> None:
-        """Add a cloud database.
-
-        Args:
-            cloud_database: The cloud database to add.
-
-        Raises:
-            ValueError: One of the given cloud database keys matches a key for
-                an existing cloud database.
-        """
-        self._target_manager.add_cloud_database(
-            cloud_database=cloud_database,
-        )
-        self._added_cloud_databases.append(cloud_database)
 
     def add_vumark_database(self, vumark_database: VuMarkDatabase) -> None:
         """Add a VuMark database.
@@ -336,68 +247,6 @@ class MockVWS:
             vumark_database=vumark_database,
         )
         self._added_vumark_databases.append(vumark_database)
-
-    def set_target_recognition_counts(
-        self,
-        *,
-        target_id: str,
-        current_month_recos: int | None = None,
-        previous_month_recos: int | None = None,
-        total_recos: int | None = None,
-    ) -> None:
-        """Set the recognition counts of a target.
-
-        Queries do not change these counts, because the counts which real
-        Vuforia reports lag behind its queries by longer than a test runs, so
-        this is the only way to make them anything but zero.
-
-        Args:
-            target_id: The ID of the target to set recognition counts of.
-            current_month_recos: The number of recognitions of the target in
-                the current month, or ``None`` to leave that count as it is.
-            previous_month_recos: The number of recognitions of the target in
-                the previous month, or ``None`` to leave that count as it is.
-            total_recos: The total number of recognitions of the target, or
-                ``None`` to leave that count as it is.
-
-        Raises:
-            ValueError: No target in any added cloud database has the given ID.
-        """
-        with self._target_manager.lock:
-            matches = [
-                (cloud_database, target)
-                for cloud_database in self._target_manager.cloud_databases
-                for target in cloud_database.targets
-                if target.target_id == target_id
-            ]
-
-            if not bool(matches):
-                msg = f'No target has the ID "{target_id}".'
-                raise ValueError(msg)
-
-            for cloud_database, target in matches:
-                # Recognizing a target does not change it, so the target's
-                # last modified date is not changed here.
-                new_target = copy.replace(
-                    target,
-                    current_month_recos=(
-                        target.current_month_recos
-                        if current_month_recos is None
-                        else current_month_recos
-                    ),
-                    previous_month_recos=(
-                        target.previous_month_recos
-                        if previous_month_recos is None
-                        else previous_month_recos
-                    ),
-                    total_recos=(
-                        target.total_recos
-                        if total_recos is None
-                        else total_recos
-                    ),
-                )
-                cloud_database.targets.remove(target)
-                cloud_database.targets.add(new_target)
 
     def __call__[**P, T](
         self,
@@ -429,17 +278,9 @@ class MockVWS:
             # manager is not enough to isolate one call from the next. We
             # therefore put the targets back as they were afterwards.
             #
-            # ``CloudDatabase`` equality includes the targets, which change
-            # during the call, so the snapshots are held in a list rather
-            # than in a dictionary keyed by database.
-            #
             # Reading and writing the targets in a database is guarded by
             # the target manager's lock, as documented on that lock.
             with self._target_manager.lock:
-                cloud_snapshots = [
-                    (database, set(database.targets))
-                    for database in self._added_cloud_databases
-                ]
                 vumark_snapshots = [
                     (database, set(database.vumark_targets))
                     for database in self._added_vumark_databases
@@ -450,9 +291,6 @@ class MockVWS:
                     return function(*args, **kwargs)
             finally:
                 with self._target_manager.lock:
-                    for cloud_database, cloud_targets in cloud_snapshots:
-                        cloud_database.targets.clear()
-                        cloud_database.targets.update(cloud_targets)
                     for vumark_database, vumark_targets in vumark_snapshots:
                         vumark_database.vumark_targets.clear()
                         vumark_database.vumark_targets.update(vumark_targets)
@@ -506,7 +344,6 @@ class MockVWS:
 
         for api, base_url in (
             (self._mock_vws_api, self._options.base_vws_url),
-            (self._mock_vwq_api, self._options.base_vwq_url),
         ):
             base_path = urlparse(url=base_url).path.rstrip("/")
             for route in api.routes:
@@ -535,9 +372,7 @@ class MockVWS:
 
         router = start_respx_router(
             mock_vws_api=self._mock_vws_api,
-            mock_vwq_api=self._mock_vwq_api,
             base_vws_url=self._options.base_vws_url,
-            base_vwq_url=self._options.base_vwq_url,
             response_delay_seconds=self._options.response_delay_seconds,
             sleep_fn=self._options.sleep_fn,
             real_http=self._options.real_http,
@@ -548,9 +383,7 @@ class MockVWS:
 
         httpx2_router = start_httpx2_router(
             mock_vws_api=self._mock_vws_api,
-            mock_vwq_api=self._mock_vwq_api,
             base_vws_url=self._options.base_vws_url,
-            base_vwq_url=self._options.base_vwq_url,
             response_delay_seconds=self._options.response_delay_seconds,
             sleep_fn=self._options.sleep_fn,
             real_http=self._options.real_http,

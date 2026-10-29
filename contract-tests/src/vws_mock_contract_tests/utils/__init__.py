@@ -1,15 +1,11 @@
 """Utilities for tests."""
 
-import io
-import secrets
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Literal
 from urllib.parse import urljoin
 
 import requests
 from beartype import beartype
-from PIL import Image
 from requests.structures import CaseInsensitiveDict
 from vws.response import Response
 
@@ -160,102 +156,3 @@ class ModelTargetEndpoint:
                 data=self.data,
             ),
         )
-
-
-@beartype
-def make_image_file(
-    *,
-    file_format: str,
-    color_space: Literal["RGB", "CMYK"],
-    width: int,
-    height: int,
-) -> io.BytesIO:
-    """Return an image file in the given format and color space.
-
-    The image file is filled with randomly colored pixels.
-
-    Args:
-        file_format: See
-            https://pillow.readthedocs.io/en/3.1.x/handbook/image-file-formats.html
-        color_space: One of "RGB", or "CMYK".
-        width: The width, in pixels of the image.
-        height: The width, in pixels of the image.
-
-    Returns:
-        An image file in the given format and color space.
-    """
-    image_buffer = io.BytesIO()
-    image = Image.new(mode=color_space, size=(width, height))
-    for row_index in range(height):
-        for column_index in range(width):
-            red = secrets.choice(seq=range(255))
-            green = secrets.choice(seq=range(255))
-            blue = secrets.choice(seq=range(255))
-            image.putpixel(
-                xy=(column_index, row_index),
-                value=(red, green, blue),
-            )
-
-    image.save(fp=image_buffer, format=file_format)
-    _ = image_buffer.seek(0)
-    return image_buffer
-
-
-@beartype
-def make_single_color_image_file(*, width: int, height: int) -> io.BytesIO:
-    """Return a greyscale PNG file of one color.
-
-    A single color image compresses to a tiny file whatever its dimensions, so
-    this is a way to make an image with many pixels but a small file size.
-
-    Args:
-        width: The width, in pixels, of the image.
-        height: The height, in pixels, of the image.
-
-    Returns:
-        A greyscale PNG file of one color.
-    """
-    image_buffer = io.BytesIO()
-    image = Image.new(mode="L", size=(width, height))
-    image.save(fp=image_buffer, format="PNG")
-    _ = image_buffer.seek(0)
-    return image_buffer
-
-
-@beartype
-def make_truncated_png_file() -> io.BytesIO:
-    """Return a PNG file whose image data is cut off before the end.
-
-    The file keeps a valid signature and header, so Pillow opens it, but the
-    ``IEND`` chunk which marks the end of the image is missing, so decoding
-    the image data fails.
-
-    Returns:
-        A PNG file which is truncated before its ``IEND`` chunk.
-    """
-    image = Image.frombytes(mode="RGB", size=(1, 1), data=b"\x01\x02\x03")
-    image_buffer = io.BytesIO()
-    image.save(fp=image_buffer, format="PNG", optimize=True)
-    image_bytes = image_buffer.getvalue()
-    # Remove the ``IEND`` chunk: its four length bytes, its four type bytes
-    # and its four checksum bytes.
-    truncated = image_bytes[: image_bytes.rindex(b"IEND") - 4]
-    return io.BytesIO(initial_bytes=truncated)
-
-
-@beartype
-def make_decompression_bomb_image_file() -> io.BytesIO:
-    """Return a PNG file which is tiny on disk but huge when decoded.
-
-    The dimensions are within the maximum width and height accepted by the
-    Query API, and the file is well within the maximum file size, but the
-    pixel count is above the point at which Pillow refuses to open an image.
-
-    Returns:
-        A PNG file which is a decompression bomb.
-    """
-    # Pillow raises ``Image.DecompressionBombError`` for images with more than
-    # twice ``Image.MAX_IMAGE_PIXELS`` pixels, which is 178956970 pixels by
-    # default.
-    width = height = 15_000
-    return make_single_color_image_file(width=width, height=height)

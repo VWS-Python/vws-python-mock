@@ -1,29 +1,26 @@
 |project|
 =========
 
-Mocking calls made to Vuforia
-------------------------------
+Mock the Vuforia Model Target Web API and VuMark generation with ``requests``, ``httpx``, or ``httpx2``.
+Cloud Image Recognition, cloud image target management, and the VWQ service have been removed.
 
 .. code-block:: console
 
-   $ pip install vws-python-mock
+   $ pip install vws-python-mock vws-python
 
-This requires Python |minimum-python-version|\+.
+The examples use ``vws-python`` as the client.
 
 .. include:: basic-example.rst
 
+HTTPX
+-----
+
 .. include:: httpx-example.rst
 
+HTTPX2
+------
+
 .. include:: httpx2-example.rst
-
-Using containers to mock calls to Vuforia from any language
------------------------------------------------------------
-
-You can run a Mock VWS instance using Docker or Apple's ``container`` CLI.
-
-This allows you to run tests against a mock VWS instance regardless of the language or tooling you are using.
-
-See :doc:`docker` for how to do this.
 
 Reference
 ---------

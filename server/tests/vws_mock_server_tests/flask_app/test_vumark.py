@@ -11,8 +11,12 @@ from vws import VuMarkService
 from vws.vumark_accept import VuMarkAccept
 from vws_auth_tools import authorization_header, rfc_1123_date
 
+from mock_vws._flask_server.target_manager import (
+    TARGET_MANAGER_FLASK_APP as LEGACY_TARGET_MANAGER_APP,
+)
 from mock_vws.database import VuMarkDatabase
 from mock_vws.target import VuMarkTarget
+from vws_mock_server.target_manager import TARGET_MANAGER_FLASK_APP
 
 
 @pytest.mark.parametrize(
@@ -123,3 +127,10 @@ def test_processing_target_returns_forbidden(target_manager_url: str) -> None:
     assert response.status_code == HTTPStatus.FORBIDDEN
     response_json = response.json()
     assert response_json["result_code"] == "TargetStatusNotSuccess"
+
+
+def test_legacy_target_manager_forwarder() -> None:
+    """The compatibility import exposes the retained target-manager
+    app.
+    """
+    assert LEGACY_TARGET_MANAGER_APP is TARGET_MANAGER_FLASK_APP

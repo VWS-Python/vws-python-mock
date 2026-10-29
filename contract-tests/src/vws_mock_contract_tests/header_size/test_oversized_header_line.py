@@ -12,19 +12,16 @@ from vws_mock_contract_tests.header_size.helpers import (
 )
 from vws_mock_contract_tests.utils import Endpoint
 from vws_mock_contract_tests.utils.assertions import (
-    assert_query_success,
     assert_valid_date_header,
-    assert_vws_response,
 )
 from vws_mock_contract_tests.utils.too_many_requests import (
     handle_server_errors,
 )
 
-# The observed NGINX boundary is an API expectation, independent of core.
 _MAX_HEADER_LINE_LENGTH = 8190
 
 
-def test_header_too_large(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_header_too_large(endpoint: Endpoint) -> None:
     """A header line one byte too long for NGINX gives a
     ``BAD_REQUEST``
     response with NGINX's HTML body, before any authorization.
@@ -34,22 +31,16 @@ def test_header_too_large(endpoint: Endpoint, base_vwq_url: str) -> None:
         endpoint=endpoint,
         name=name,
         value=header_value_for_line_length(
-            name=name,
-            line_length=_MAX_HEADER_LINE_LENGTH + 1,
+            name=name, line_length=_MAX_HEADER_LINE_LENGTH + 1
         ),
     )
-
     response = new_endpoint.send()
     handle_server_errors(response=response)
     assert_valid_date_header(response=response)
-    assert_nginx_too_large_response(
-        endpoint=endpoint,
-        response=response,
-        base_vwq_url=base_vwq_url,
-    )
+    assert_nginx_too_large_response(response=response)
 
 
-def test_cookie_too_large(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_cookie_too_large(endpoint: Endpoint) -> None:
     """A cookie which makes the ``Cookie`` line too long for NGINX
     gives
     the same ``BAD_REQUEST`` response as any other header.
@@ -64,24 +55,16 @@ def test_cookie_too_large(endpoint: Endpoint, base_vwq_url: str) -> None:
         name=name,
         value="pad="
         + header_value_for_line_length(
-            name=name,
-            line_length=_MAX_HEADER_LINE_LENGTH + 1000,
+            name=name, line_length=_MAX_HEADER_LINE_LENGTH + 1000
         ),
     )
-
     response = new_endpoint.send()
     handle_server_errors(response=response)
     assert_valid_date_header(response=response)
-    assert_nginx_too_large_response(
-        endpoint=endpoint,
-        response=response,
-        base_vwq_url=base_vwq_url,
-    )
+    assert_nginx_too_large_response(response=response)
 
 
-def test_large_header_within_limit(
-    endpoint: Endpoint, base_vwq_url: str
-) -> None:
+def test_large_header_within_limit(endpoint: Endpoint) -> None:
     """A large header line which fits in NGINX's buffer is accepted.
 
     This does not send a line at the limit exactly, because the Query
@@ -94,24 +77,9 @@ def test_large_header_within_limit(
         endpoint=endpoint,
         name=name,
         value=header_value_for_line_length(
-            name=name,
-            line_length=_MAX_HEADER_LINE_LENGTH // 2,
+            name=name, line_length=_MAX_HEADER_LINE_LENGTH // 2
         ),
     )
-
     response = new_endpoint.send()
     handle_server_errors(response=response)
-
-    if endpoint.base_url == base_vwq_url:
-        assert_query_success(response=response)
-        return
-
-    if endpoint.successful_headers_result_code is None:
-        assert response.status_code == endpoint.successful_headers_status_code
-        return
-
-    assert_vws_response(
-        response=response,
-        status_code=endpoint.successful_headers_status_code,
-        result_code=endpoint.successful_headers_result_code,
-    )
+    assert response.status_code == endpoint.successful_headers_status_code

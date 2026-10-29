@@ -3,57 +3,34 @@
 import logging
 from collections.abc import Generator
 from enum import Enum
-from http import HTTPMethod
 from uuid import uuid4
 
 import pytest
-import requests
 from beartype import beartype
 from pytest_multi_backend import backend_fixture
-from vws import VWS
 
-from mock_vws.database import CloudDatabase
-from mock_vws.request_rate_limits import DOCUMENTED_REQUEST_RATE_LIMITS
-from mock_vws.states import States
 from vws_mock_contract_tests.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     ModelTargetCredentials,
-    NamedCloudDatabaseCredentials,
     VuMarkCloudDatabase,
 )
 from vws_mock_contract_tests.utils.backend_capabilities import (
     BackendCapabilities,
 )
-from vws_mock_contract_tests.utils.cloud_databases import CreateCloudDatabase
-from vws_mock_contract_tests.utils.recognition_counts import (
-    SeedRecognitionCounts,
-)
-from vws_mock_contract_tests.utils.unrouted_requests import (
-    UnroutedRequests,
-    UnroutedResponse,
-)
 from vws_mock_test_backends.flask_backend import (
-    add_cloud_database,
     enable_flask_in_process,
     enable_flask_model_targets,
-    seed_flask_recognition_counts,
-    send_flask_unrouted_request,
 )
 from vws_mock_test_backends.in_memory_backend import (
     enable_in_memory_model_targets,
     enable_in_memory_vuforia,
-    running_in_memory_mock,
-    seed_in_memory_counts,
 )
 from vws_mock_test_backends.real_backend import (
-    LiveVWS,
     enable_real_model_targets,
     enable_real_vuforia,
 )
 from vws_mock_test_backends.real_credentials import (
     get_model_target_credentials,
-    get_real_cloud_database,
-    get_real_inactive_cloud_database,
     get_real_inactive_vumark_database,
     get_real_vumark_database,
 )
@@ -66,12 +43,6 @@ LOGGER.setLevel(level=logging.DEBUG)
 def fixture_base_vws_url() -> str:
     """The Vuforia Web Services API URL for the backend."""
     return "https://vws.vuforia.com"
-
-
-@pytest.fixture(name="base_vwq_url")
-def fixture_base_vwq_url() -> str:
-    """The Vuforia Web Query API URL for the backend."""
-    return "https://cloudreco.vuforia.com"
 
 
 class VuforiaBackend(Enum):
@@ -107,34 +78,6 @@ def _credential_backend(*, request: pytest.FixtureRequest) -> VuforiaBackend:
             assert isinstance(backend, VuforiaBackend)
             return backend
     return VuforiaBackend.MOCK
-
-
-@pytest.fixture(name="vws_client_class")
-def fixture_vws_client_class(*, request: pytest.FixtureRequest) -> type[VWS]:
-    """Use slower polling only for clients of the live Vuforia service."""
-    if _credential_backend(request=request) == VuforiaBackend.REAL:
-        return LiveVWS
-    return VWS
-
-
-@pytest.fixture(name="vuforia_database")
-def fixture_vuforia_database(
-    *, request: pytest.FixtureRequest
-) -> CloudDatabase:
-    """An active database with credentials supplied by the backend."""
-    if _credential_backend(request=request) == VuforiaBackend.REAL:
-        return get_real_cloud_database()
-    return CloudDatabase()
-
-
-@pytest.fixture(name="inactive_cloud_database")
-def fixture_inactive_cloud_database(
-    *, request: pytest.FixtureRequest
-) -> CloudDatabase:
-    """An inactive database with credentials supplied by the backend."""
-    if _credential_backend(request=request) == VuforiaBackend.REAL:
-        return get_real_inactive_cloud_database()
-    return CloudDatabase(state=States.PROJECT_INACTIVE)
 
 
 @pytest.fixture(name="inactive_vumark_database")
@@ -189,19 +132,6 @@ _MODEL_TARGET_SETUP_FUNCTIONS = {
 # jobs, and cannot be raised or reset, so signed requests run against the real
 # Vuforia only when this option is given.
 VERIFY_MODEL_TARGET_SIGNING_OPTION = "--verify-model-target-signing"
-_INVALID_JSON_REAL_ITEM_PREFIXES = tuple(
-    f"{test_name}[Real Vuforia-"
-    for test_name in ("test_not_json", "test_not_an_object", "test_not_utf_8")
-)
-_INVALID_JSON_REAL_SKIP_REASON = (
-    "Real Vuforia can leave malformed-body requests open indefinitely; the "
-    "mock backends still verify this contract."
-)
-_RECO_COUNTS_REAL_NODE_ID_PART = "[Real Vuforia-reco_counts_report"
-_RECO_COUNTS_REAL_SKIP_REASON = (
-    "The reco counts report endpoint is unavailable to the real-Vuforia "
-    "test account; the mock backends still verify this contract."
-)
 
 
 @beartype
@@ -225,29 +155,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 @beartype
-def pytest_collection_modifyitems(
-    config: pytest.Config,
-    items: list[pytest.Item],
-) -> None:
-    """Apply infrastructure-specific test skips."""
-    del config
-    invalid_json_real_marker = pytest.mark.skip(
-        reason=_INVALID_JSON_REAL_SKIP_REASON,
-    )
-    reco_counts_real_marker = pytest.mark.skip(
-        reason=_RECO_COUNTS_REAL_SKIP_REASON,
-    )
-    for item in items:
-        if item.path.parts[-2:] == (
-            "invalid_json",
-            "test_invalid_json.py",
-        ) and item.name.startswith(_INVALID_JSON_REAL_ITEM_PREFIXES):
-            item.add_marker(marker=invalid_json_real_marker)
-        if _RECO_COUNTS_REAL_NODE_ID_PART in item.nodeid:
-            item.add_marker(marker=reco_counts_real_marker)
-
-
-@beartype
 def _setup_backend(
     *,
     backend: VuforiaBackend,
@@ -259,10 +166,6 @@ def _setup_backend(
         ``None``, once the backend is set up.
     """
     yield from _SETUP_FUNCTIONS[backend](
-        working_database=request.getfixturevalue(argname="vuforia_database"),
-        inactive_cloud_database=request.getfixturevalue(
-            argname="inactive_cloud_database",
-        ),
         vumark_vuforia_database=request.getfixturevalue(
             argname="vumark_vuforia_database",
         ),
@@ -271,7 +174,6 @@ def _setup_backend(
         ),
         monkeypatch=request.getfixturevalue(argname="monkeypatch"),
         base_vws_url=request.getfixturevalue(argname="base_vws_url"),
-        base_vwq_url=request.getfixturevalue(argname="base_vwq_url"),
     )
 
 
@@ -338,7 +240,7 @@ def fixture_verify_mock_vuforia(
     _vws_backend: VuforiaBackend,
     request: pytest.FixtureRequest,
 ) -> Generator[None]:
-    """Set up and tear down the selected VWS/query backend.
+    """Set up and tear down the selected VWS backend.
 
     Yields:
         ``None``, once the backend is ready for shared tests.
@@ -386,137 +288,12 @@ def fixture_mock_only_vuforia(
     _mock_vws_backend: VuforiaBackend,
     request: pytest.FixtureRequest,
 ) -> Generator[None]:
-    """Set up and tear down a VWS/query mock backend.
+    """Set up and tear down a VWS mock backend.
 
     Yields:
         ``None``, once the backend is ready for mock-only tests.
     """
     yield from _setup_backend(backend=_mock_vws_backend, request=request)
-
-
-@beartype
-def _add_cloud_database(
-    *,
-    backend: VuforiaBackend,
-    cloud_database: CloudDatabase,
-) -> None:
-    """Add a database through the running mock backend."""
-    if backend == VuforiaBackend.MOCK:
-        running_in_memory_mock().add_cloud_database(
-            cloud_database=cloud_database,
-        )
-        return
-
-    add_cloud_database(cloud_database=cloud_database)
-
-
-@pytest.fixture(name="create_cloud_database")
-def fixture_create_cloud_database(
-    *,
-    mock_only_vuforia: None,
-    _mock_vws_backend: VuforiaBackend,
-) -> CreateCloudDatabase:
-    """The database creation operation for the running mock backend."""
-    del mock_only_vuforia
-
-    @beartype
-    def create_database() -> NamedCloudDatabaseCredentials:
-        """Create a fresh database through the selected backend."""
-        database = CloudDatabase()
-        _add_cloud_database(
-            backend=_mock_vws_backend,
-            cloud_database=database,
-        )
-        return database
-
-    return create_database
-
-
-@pytest.fixture(name="rate_limited_database")
-def fixture_rate_limited_database(
-    *,
-    verify_mock_vuforia: None,
-    _vws_backend: VuforiaBackend,
-    vuforia_database: CloudDatabase,
-) -> CloudDatabase:
-    """Return a database which applies real Vuforia's request rate limits.
-
-    The real database applies them itself. Each mock is given a fresh
-    database with the limits, so that the shared database which the other
-    tests use is not limited.
-    """
-    del verify_mock_vuforia
-    if _vws_backend == VuforiaBackend.REAL:
-        return vuforia_database
-
-    database = CloudDatabase(
-        request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS
-    )
-    _add_cloud_database(backend=_vws_backend, cloud_database=database)
-    return database
-
-
-@pytest.fixture(name="seed_recognition_counts")
-def fixture_seed_recognition_counts(
-    *,
-    mock_only_vuforia: None,
-    _mock_vws_backend: VuforiaBackend,
-) -> SeedRecognitionCounts:
-    """The recognition-count operation for the running mock backend."""
-    del mock_only_vuforia
-    if _mock_vws_backend == VuforiaBackend.MOCK:
-        return seed_in_memory_counts
-
-    return seed_flask_recognition_counts
-
-
-@pytest.fixture(name="unrouted_requests")
-def fixture_unrouted_requests(
-    *,
-    verify_mock_vuforia: None,
-    _vws_backend: VuforiaBackend,
-    base_vws_url: str,
-) -> UnroutedRequests:
-    """The transport for unmatched requests on the running backend."""
-    del verify_mock_vuforia
-    if _vws_backend == VuforiaBackend.FLASK_IN_PROCESS:
-        return UnroutedRequests(
-            send=send_flask_unrouted_request,
-            returns_response=True,
-        )
-
-    @beartype
-    def send_http_request(
-        *,
-        method: HTTPMethod,
-        request_path: str,
-        headers: dict[str, str],
-    ) -> UnroutedResponse | None:
-        """Send an unmatched request to the configured VWS URL."""
-        try:
-            response = requests.request(
-                method=method,
-                url=base_vws_url + request_path,
-                headers=headers,
-                timeout=30,
-            )
-        except requests.exceptions.ConnectionError:
-            return None
-
-        return UnroutedResponse(
-            status_code=response.status_code,
-            body=response.content,
-            content_type=response.headers.get("Content-Type"),
-            content_encoding=response.headers.get("Content-Encoding"),
-            upstream_service_time=response.headers.get(
-                "x-envoy-upstream-service-time",
-            ),
-        )
-
-    return UnroutedRequests(
-        send=send_http_request,
-        returns_response=_vws_backend != VuforiaBackend.MOCK,
-    )
 
 
 @beartype
@@ -624,12 +401,9 @@ def fixture_backend_capabilities(
     verify_mock_vuforia: None,
     _vws_backend: VuforiaBackend,
 ) -> BackendCapabilities:
-    """The behavior supported by the running VWS and query backend."""
+    """The behavior supported by the running VWS backend."""
     del verify_mock_vuforia
     is_mock = _vws_backend != VuforiaBackend.REAL
     return BackendCapabilities(
-        deterministic_target_order=is_mock,
-        deterministic_query_order=is_mock,
         fast_oversized_content_length_response=is_mock,
-        rolling_rate_limit_window=is_mock,
     )

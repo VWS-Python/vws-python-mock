@@ -5,16 +5,13 @@ from http import HTTPStatus
 from vws_auth_tools import authorization_header
 
 from vws_mock_contract_tests.utils import Endpoint
-from vws_mock_contract_tests.utils.assertions import (
-    assert_vwq_failure,
-    assert_vws_failure,
-)
+from vws_mock_contract_tests.utils.assertions import assert_vws_failure
 from vws_mock_contract_tests.utils.too_many_requests import (
     handle_server_errors,
 )
 
 
-def test_no_date_header(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_no_date_header(endpoint: Endpoint) -> None:
     """
     A `BAD_REQUEST` response is returned when no `Date` header is
     given.
@@ -28,13 +25,11 @@ def test_no_date_header(endpoint: Endpoint, base_vwq_url: str) -> None:
         date="",
         request_path=endpoint.path_url,
     )
-
     new_headers: dict[str, str] = {
         **endpoint.headers,
         "Authorization": authorization_string,
     }
     _ = new_headers.pop("Date", None)
-
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,
         path_url=endpoint.path_url,
@@ -46,24 +41,8 @@ def test_no_date_header(endpoint: Endpoint, base_vwq_url: str) -> None:
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
     )
-
     response = new_endpoint.send()
-
     handle_server_errors(response=response)
-
-    if endpoint.base_url == base_vwq_url:
-        expected_content_type = "text/plain;charset=iso-8859-1"
-        assert response.text == "Date header required."
-        assert_vwq_failure(
-            response=response,
-            status_code=HTTPStatus.BAD_REQUEST,
-            content_type=expected_content_type,
-            cache_control=None,
-            www_authenticate=None,
-            connection="keep-alive",
-        )
-        return
-
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.BAD_REQUEST,

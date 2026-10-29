@@ -6,49 +6,11 @@ from uuid import uuid4
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from mock_vws.database import CloudDatabase
-from mock_vws.states import States
 from vws_mock_contract_tests.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     ModelTargetCredentials,
     VuMarkCloudDatabase,
 )
-
-
-class _CloudDatabaseSettings(BaseSettings):
-    """Settings for a Vuforia database."""
-
-    target_manager_database_name: str
-    server_access_key: str
-    server_secret_key: str
-    client_access_key: str
-    client_secret_key: str
-
-    model_config = SettingsConfigDict(
-        env_prefix="VUFORIA_",
-        env_file=Path("vuforia_secrets.env"),
-        extra="allow",
-    )
-
-
-class _WorkingCloudDatabaseSettings(_CloudDatabaseSettings):
-    """Settings for the working Vuforia database.
-
-    Only the working database has an ID, because only endpoints which name
-    a database in their path need one.
-    """
-
-    database_id: str
-
-
-class _InactiveCloudDatabaseSettings(_CloudDatabaseSettings):
-    """Settings for an inactive Vuforia database."""
-
-    model_config = SettingsConfigDict(
-        env_prefix="INACTIVE_VUFORIA_",
-        env_file=Path("vuforia_secrets.env"),
-        extra="allow",
-    )
 
 
 class _InactiveVuMarkDatabaseSettings(BaseSettings):
@@ -108,36 +70,6 @@ def get_model_target_credentials() -> ModelTargetCredentials:
         cad_data_url=settings.cad_data_url,
         username=settings.username,
         password=settings.password,
-    )
-
-
-def get_real_cloud_database() -> CloudDatabase:
-    """Return VWS credentials from environment variables."""
-    settings = _WorkingCloudDatabaseSettings.model_validate(obj={})
-    return CloudDatabase(
-        database_id=settings.database_id,
-        database_name=settings.target_manager_database_name,
-        server_access_key=settings.server_access_key,
-        server_secret_key=settings.server_secret_key,
-        client_access_key=settings.client_access_key,
-        client_secret_key=settings.client_secret_key,
-        state=States.WORKING,
-    )
-
-
-def get_real_inactive_cloud_database() -> CloudDatabase:
-    """
-    Return VWS credentials for an inactive project from environment
-    variables.
-    """
-    settings = _InactiveCloudDatabaseSettings.model_validate(obj={})
-    return CloudDatabase(
-        database_name=settings.target_manager_database_name,
-        server_access_key=settings.server_access_key,
-        server_secret_key=settings.server_secret_key,
-        client_access_key=settings.client_access_key,
-        client_secret_key=settings.client_secret_key,
-        state=States.PROJECT_INACTIVE,
     )
 
 

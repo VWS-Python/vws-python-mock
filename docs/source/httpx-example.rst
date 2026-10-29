@@ -1,18 +1,27 @@
-``MockVWS`` also intercepts requests made with `httpx`_.
-
 .. code-block:: python
 
-   """Make a request to the Vuforia Web Services API mock using httpx."""
+   """Generate a VuMark instance using a mock."""
 
-   import httpx
+   from vws import VuMarkService
+   from vws.transports import HTTPXTransport
+   from vws.vumark_accept import VuMarkAccept
 
    from mock_vws import MockVWS
-   from mock_vws.database import CloudDatabase
+   from mock_vws.database import VuMarkDatabase
+   from mock_vws.target import VuMarkTarget
 
+   target = VuMarkTarget(name="example-template")
+   database = VuMarkDatabase(vumark_targets={target})
    with MockVWS() as mock:
-       database = CloudDatabase()
-       mock.add_cloud_database(cloud_database=database)
-       # This will use the Vuforia mock.
-       _ = httpx.get(url="https://vws.vuforia.com/summary", timeout=30)
-
-.. _httpx: https://pypi.org/project/httpx/
+       mock.add_vumark_database(vumark_database=database)
+       client = VuMarkService(
+           server_access_key=database.server_access_key,
+           server_secret_key=database.server_secret_key,
+           transport=HTTPXTransport(),
+       )
+       result = client.generate_vumark_instance(
+           target_id=target.target_id,
+           instance_id="123",
+           accept=VuMarkAccept.PNG,
+       )
+       assert result.startswith(b"\x89PNG")

@@ -8,10 +8,9 @@ import httpx2
 import pytest
 import requests
 from beartype import beartype
-from vws_auth_tools import authorization_header, rfc_1123_date
+from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
-from mock_vws.database import CloudDatabase
 
 
 @beartype
@@ -25,7 +24,7 @@ def request_unmocked_address(unused_local_url: Callable[[], str]) -> None:
             context of a ``responses`` mock which does not mock local
             addresses.
     """
-    _ = requests.get(url=unused_local_url(), timeout=30)
+    _ = requests.post(url=unused_local_url(), timeout=30)
 
 
 @beartype
@@ -34,8 +33,8 @@ def request_mocked_address() -> None:
     Make a request, using `requests` to an address that is mocked by
     `MockVWS`.
     """
-    _ = requests.get(
-        url="https://vws.vuforia.com/summary",
+    _ = requests.post(
+        url="https://vws.vuforia.com/targets/template/instances",
         headers={
             "Date": rfc_1123_date(),
             "Authorization": "bad_auth_token",
@@ -88,38 +87,13 @@ def test_custom_base_vws_url() -> None:
         with pytest.raises(
             expected_exception=requests.exceptions.ConnectionError
         ):
-            _ = requests.get(url="https://vws.vuforia.com/summary", timeout=30)
-
-        _ = requests.get(
-            url="https://vuforia.vws.example.com/summary",
-            timeout=30,
-        )
-        _ = requests.post(
-            url="https://cloudreco.vuforia.com/v1/query",
-            timeout=30,
-        )
-
-
-def test_custom_base_vwq_url() -> None:
-    """It is possible to use a custom base cloud recognition URL."""
-    with MockVWS(
-        base_vwq_url="https://vuforia.vwq.example.com",
-        real_http=False,
-    ):
-        with pytest.raises(
-            expected_exception=requests.exceptions.ConnectionError
-        ):
             _ = requests.post(
-                url="https://cloudreco.vuforia.com/v1/query",
+                url="https://vws.vuforia.com/targets/template/instances",
                 timeout=30,
             )
 
         _ = requests.post(
-            url="https://vuforia.vwq.example.com/v1/query",
-            timeout=30,
-        )
-        _ = requests.get(
-            url="https://vws.vuforia.com/summary",
+            url="https://vuforia.vws.example.com/targets/template/instances",
             timeout=30,
         )
 
@@ -135,92 +109,15 @@ def test_custom_base_vws_url_with_path_prefix() -> None:
         with pytest.raises(
             expected_exception=requests.exceptions.ConnectionError
         ):
-            _ = requests.get(
-                url="https://vuforia.vws.example.com/summary",
-                timeout=30,
-            )
-
-        _ = requests.get(
-            url="https://vuforia.vws.example.com/prefix/summary",
-            timeout=30,
-        )
-
-
-def test_custom_base_vwq_url_with_path_prefix() -> None:
-    """A custom base VWQ URL with a path prefix intercepts at the
-    prefix.
-    """
-    with MockVWS(
-        base_vwq_url="https://vuforia.vwq.example.com/prefix",
-        real_http=False,
-    ):
-        with pytest.raises(
-            expected_exception=requests.exceptions.ConnectionError
-        ):
             _ = requests.post(
-                url="https://vuforia.vwq.example.com/v1/query",
+                url="https://vuforia.vws.example.com/targets/template/instances",
                 timeout=30,
             )
 
         _ = requests.post(
-            url="https://vuforia.vwq.example.com/prefix/v1/query",
+            url="https://vuforia.vws.example.com/prefix/targets/template/instances",
             timeout=30,
         )
-
-
-def test_vws_operations_work_with_path_prefix() -> None:
-    """VWS API operations work correctly with a base URL path
-    prefix.
-    """
-    database = CloudDatabase()
-    base_vws_url = "https://vuforia.vws.example.com/prefix"
-
-    with MockVWS(base_vws_url=base_vws_url) as mock:
-        mock.add_cloud_database(cloud_database=database)
-
-        request_path = "/targets"
-        date = rfc_1123_date()
-        auth = authorization_header(
-            access_key=database.server_access_key,
-            secret_key=database.server_secret_key,
-            method="GET",
-            content=b"",
-            content_type="",
-            date=date,
-            request_path=request_path,
-        )
-        response = requests.get(
-            url=base_vws_url + request_path,
-            headers={
-                "Authorization": auth,
-                "Date": date,
-            },
-            timeout=30,
-        )
-
-    assert response.status_code == HTTPStatus.OK
-    response_json = response.json()
-    assert response_json["result_code"] == "Success"
-    assert response_json["results"] == []
-
-
-def test_no_scheme() -> None:
-    """An error if raised if a URL is given with no scheme."""
-    with pytest.raises(expected_exception=MissingSchemeError) as vws_exc:
-        _ = MockVWS(base_vws_url="vuforia.vws.example.com")
-
-    expected = (
-        'Invalid URL "vuforia.vws.example.com": No scheme supplied. '
-        'Perhaps you meant "https://vuforia.vws.example.com".'
-    )
-    assert str(object=vws_exc.value) == expected
-    with pytest.raises(expected_exception=MissingSchemeError) as vwq_exc:
-        _ = MockVWS(base_vwq_url="vuforia.vwq.example.com")
-    expected = (
-        'Invalid URL "vuforia.vwq.example.com": No scheme supplied. '
-        'Perhaps you meant "https://vuforia.vwq.example.com".'
-    )
-    assert str(object=vwq_exc.value) == expected
 
 
 def test_httpx_vuforia_endpoint_intercepted() -> None:
@@ -228,8 +125,8 @@ def test_httpx_vuforia_endpoint_intercepted() -> None:
     endpoints.
     """
     with MockVWS():
-        response = httpx.get(
-            url="https://vws.vuforia.com/summary",
+        response = httpx.post(
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={
                 "Date": rfc_1123_date(),
                 "Authorization": "bad_auth_token",
@@ -246,7 +143,7 @@ def test_httpx_unmocked_address_blocked(
     addresses.
     """
     with MockVWS(), pytest.raises(expected_exception=httpx.ConnectError):
-        _ = httpx.get(url=unused_local_url(), timeout=30)
+        _ = httpx.post(url=unused_local_url(), timeout=30)
 
 
 def test_httpx_real_http(unused_local_url: Callable[[], str]) -> None:
@@ -257,7 +154,7 @@ def test_httpx_real_http(unused_local_url: Callable[[], str]) -> None:
         MockVWS(real_http=True),
         pytest.raises(expected_exception=httpx.ConnectError),
     ):
-        _ = httpx.get(url=unused_local_url(), timeout=30)
+        _ = httpx.post(url=unused_local_url(), timeout=30)
 
 
 def test_httpx2_vuforia_endpoint_intercepted() -> None:
@@ -265,8 +162,8 @@ def test_httpx2_vuforia_endpoint_intercepted() -> None:
     endpoints.
     """
     with MockVWS():
-        response = httpx2.get(
-            url="https://vws.vuforia.com/summary",
+        response = httpx2.post(
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={
                 "Date": rfc_1123_date(),
                 "Authorization": "bad_auth_token",
@@ -281,8 +178,8 @@ def test_httpx2_client_made_before_start_intercepted() -> None:
     intercepted.
     """
     with httpx2.Client() as client, MockVWS():
-        response = client.get(
-            url="https://vws.vuforia.com/summary",
+        response = client.post(
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={
                 "Date": rfc_1123_date(),
                 "Authorization": "bad_auth_token",
@@ -299,7 +196,7 @@ def test_httpx2_unmocked_address_blocked(
     addresses.
     """
     with MockVWS(), pytest.raises(expected_exception=httpx2.ConnectError):
-        _ = httpx2.get(url=unused_local_url(), timeout=30)
+        _ = httpx2.post(url=unused_local_url(), timeout=30)
 
 
 def test_httpx2_real_http(unused_local_url: Callable[[], str]) -> None:
@@ -310,4 +207,13 @@ def test_httpx2_real_http(unused_local_url: Callable[[], str]) -> None:
         MockVWS(real_http=True),
         pytest.raises(expected_exception=httpx2.ConnectError),
     ):
-        _ = httpx2.get(url=unused_local_url(), timeout=30)
+        _ = httpx2.post(url=unused_local_url(), timeout=30)
+
+
+def test_missing_base_url_scheme() -> None:
+    """Invalid retained service URLs explain the missing scheme."""
+    with pytest.raises(
+        expected_exception=MissingSchemeError, match="scheme"
+    ) as error:
+        _ = MockVWS(base_vws_url="vws.example.com")
+    assert error.value.url == "vws.example.com"

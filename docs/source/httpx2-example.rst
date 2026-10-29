@@ -1,20 +1,27 @@
-``MockVWS`` also intercepts requests made with `HTTPX2`_, with no need for ``httpx2.alias_httpx()``.
-
 .. code-block:: python
 
-   """Make a request to the Vuforia Web Services API mock using httpx2."""
+   """Generate a VuMark instance using a mock."""
 
-   import httpx2
+   from vws import VuMarkService
+   from vws.transports import HTTPX2Transport
+   from vws.vumark_accept import VuMarkAccept
 
    from mock_vws import MockVWS
-   from mock_vws.database import CloudDatabase
+   from mock_vws.database import VuMarkDatabase
+   from mock_vws.target import VuMarkTarget
 
+   target = VuMarkTarget(name="example-template")
+   database = VuMarkDatabase(vumark_targets={target})
    with MockVWS() as mock:
-       database = CloudDatabase()
-       mock.add_cloud_database(cloud_database=database)
-       # This will use the Vuforia mock.
-       _ = httpx2.get(url="https://vws.vuforia.com/summary", timeout=30)
-
-Asynchronous ``httpx`` and `HTTPX2`_ clients are intercepted as well.
-
-.. _HTTPX2: https://httpx2.pydantic.dev/
+       mock.add_vumark_database(vumark_database=database)
+       client = VuMarkService(
+           server_access_key=database.server_access_key,
+           server_secret_key=database.server_secret_key,
+           transport=HTTPX2Transport(),
+       )
+       result = client.generate_vumark_instance(
+           target_id=target.target_id,
+           instance_id="123",
+           accept=VuMarkAccept.PNG,
+       )
+       assert result.startswith(b"\x89PNG")

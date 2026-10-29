@@ -1,15 +1,10 @@
 """Tests for sending various data types."""
 
-import pytest
-
 from tests.mock_vws.utils import Endpoint
 
 
-def test_text(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_text(endpoint: Endpoint) -> None:
     """It is possible to send strings to VWS endpoints."""
-    if endpoint.base_url == base_vwq_url:
-        pytest.skip()
-
     assert isinstance(endpoint.data, bytes)
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,

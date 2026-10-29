@@ -1,1 +1,1 @@
-"""Header size tests."""
+"""Compatibility package for the shared contract suite."""

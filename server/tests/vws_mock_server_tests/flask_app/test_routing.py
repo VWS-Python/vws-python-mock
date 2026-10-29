@@ -9,28 +9,25 @@ responses against real Vuforia.
 
 from http import HTTPStatus
 
-from mock_vws._flask_server import target_manager as legacy_target_manager
-from mock_vws._flask_server import vwq as legacy_vwq
-from mock_vws._flask_server import vws as legacy_vws
-from vws_mock_server.target_manager import TARGET_MANAGER_FLASK_APP
-from vws_mock_server.vwq import CLOUDRECO_FLASK_APP
+import pytest
+
 from vws_mock_server.vws import VWS_FLASK_APP
 
 
-def test_unauthenticated_unknown_path() -> None:
-    """A request to a path which is not routed returns a 404 even
-    without credentials.
-
-    The Docker health check relies on this request returning a
-    response.
-    """
-    # Compatibility imports must share the same applications and state.
-    assert legacy_vws.VWS_FLASK_APP is VWS_FLASK_APP
-    assert legacy_vwq.CLOUDRECO_FLASK_APP is CLOUDRECO_FLASK_APP
-    assert (
-        legacy_target_manager.TARGET_MANAGER_FLASK_APP
-        is TARGET_MANAGER_FLASK_APP
+@pytest.mark.parametrize(
+    argnames="path", argvalues=["/unknown", "/summary", "/targets"]
+)
+def test_removed_or_unknown_route(
+    path: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Removed cloud routes and unknown paths receive an empty 404."""
+    monkeypatch.setitem(
+        dic=VWS_FLASK_APP.config,
+        name="VWS_MOCK_TERMINATE_WSGI_INPUT",
+        value=False,
     )
-    response = VWS_FLASK_APP.test_client().get("/some-random-endpoint")
-
+    with VWS_FLASK_APP.test_client() as client:
+        response = client.get(path=path)
     assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.data == b""
+    assert "Content-Type" not in response.headers

@@ -22,8 +22,8 @@ def test_date_changes() -> None:
         tzinfo=dt.UTC,
     )
     with MockVWS(), freeze_time(time_to_freeze=new_time):
-        response = requests.get(
-            url="https://vws.vuforia.com/summary",
+        response = requests.post(
+            url="https://vws.vuforia.com/targets/template/instances",
             timeout=30,
         )
 

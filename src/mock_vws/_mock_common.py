@@ -1,6 +1,5 @@
 """Common utilities for creating mock routes."""
 
-import datetime as dt
 import email.utils
 import json
 import uuid
@@ -13,22 +12,6 @@ from beartype import beartype
 from pydantic import JsonValue
 
 from mock_vws._constants import ResultCodes
-from mock_vws.target import ImageTarget
-
-# A database ID as it appears in the path of a reco counts report request.
-DATABASE_ID_PATTERN = "[A-Za-z0-9_-]+"
-# The path of the endpoint which requests a reco counts report.
-RECO_COUNTS_REPORT_PATH_PATTERN = (
-    f"/imagetargets/databases/{DATABASE_ID_PATTERN}/reports/recoCounts"
-)
-# The path which stands in for a reco counts report presigned URL, with the
-# query string of that URL.
-# Any file name is matched, so that a file which no request generated gives
-# the response which cloud storage gives for a missing object rather than
-# leaving the request unmatched.
-RECO_COUNTS_DOWNLOAD_PATH_PATTERN = (
-    f"/reports/{DATABASE_ID_PATTERN}/[^/?]+(\\?.*)?"
-)
 
 
 @beartype
@@ -117,36 +100,6 @@ class RouteDefinition[API]:
             path_pattern=self.path_pattern,
             http_methods=self.http_methods,
         )
-
-
-@beartype
-def _upload_order_key(target: ImageTarget) -> tuple[dt.datetime, str]:
-    """Give the sort key which orders targets by upload date, then ID.
-
-    Args:
-        target: The target to give a sort key for.
-
-    Returns:
-        The target's upload date and ID.
-    """
-    return (target.upload_date, target.target_id)
-
-
-@beartype
-def sorted_targets(*, targets: Iterable[ImageTarget]) -> list[ImageTarget]:
-    """Put targets into a deterministic order.
-
-    Targets are held in a ``set``, so iterating over them gives an order which
-    varies between runs. Endpoints which return lists of targets use this so
-    that repeated runs agree with each other.
-
-    Args:
-        targets: The targets to order.
-
-    Returns:
-        The given targets, ordered by upload date and then by target ID.
-    """
-    return sorted(targets, key=_upload_order_key)
 
 
 @beartype

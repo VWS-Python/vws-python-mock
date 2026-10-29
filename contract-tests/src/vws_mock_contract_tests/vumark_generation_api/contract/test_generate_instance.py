@@ -5,18 +5,12 @@ from http import HTTPStatus
 from uuid import uuid4
 
 import pytest
-from vws import VWS
 from vws.exceptions.vws_exceptions import (
     InvalidInstanceIdError,
-    InvalidTargetTypeError,
 )
 from vws.vumark_accept import VuMarkAccept
 
-from vws_mock_contract_tests.fixtures.credentials import (
-    CloudDatabaseCredentials,
-    VuMarkCloudDatabase,
-)
-from vws_mock_contract_tests.utils import make_image_file
+from vws_mock_contract_tests.fixtures.credentials import VuMarkCloudDatabase
 from vws_mock_contract_tests.vumark_generation_api.helpers import (
     PDF_SIGNATURE,
     PNG_SIGNATURE,
@@ -193,50 +187,6 @@ def test_unknown_target(
     assert response.status_code == HTTPStatus.NOT_FOUND
     response_json = response.json()
     assert response_json["result_code"] == "UnknownTarget"
-
-
-def test_non_vumark_database(
-    base_vws_url: str,
-    vuforia_database: CloudDatabaseCredentials,
-) -> None:
-    """Generating a VuMark instance for a target in a non-VuMark
-    database returns InvalidTargetType.
-    """
-    server_access_key = vuforia_database.server_access_key
-    server_secret_key = vuforia_database.server_secret_key
-    vws_client = VWS(
-        base_vws_url=base_vws_url,
-        server_access_key=server_access_key,
-        server_secret_key=server_secret_key,
-    )
-    vumark_client = make_vumark_service(
-        base_vws_url=base_vws_url,
-        server_access_key=server_access_key,
-        server_secret_key=server_secret_key,
-    )
-    image = make_image_file(
-        file_format="PNG",
-        color_space="RGB",
-        width=8,
-        height=8,
-    )
-    target_id = vws_client.add_target(
-        name="test",
-        width=1,
-        image=image,
-        active_flag=True,
-        application_metadata=None,
-    )
-    with pytest.raises(expected_exception=InvalidTargetTypeError) as exc:
-        _ = vumark_client.generate_vumark_instance(
-            target_id=target_id,
-            instance_id=uuid4().hex,
-            accept=VuMarkAccept.PNG,
-        )
-
-    assert exc.value.response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    response_json = json.loads(s=exc.value.response.text)
-    assert response_json["result_code"] == "InvalidTargetType"
 
 
 def test_successful_target(

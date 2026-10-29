@@ -13,7 +13,6 @@ import vws_web_tools
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.remote.webdriver import WebDriver
 from vws_web_tools import (
-    DatabaseDict,
     ModelTargetWebAPIDict,
     VuMarkDatabaseDict,
 )
@@ -28,39 +27,6 @@ MODEL_TARGET_WEB_API_SCOPES = (
     "modeltargets.statebasedmodeltarget.all",
     "modeltargets.advancedstatebasedmodeltarget.all",
 )
-
-
-def _create_and_get_cloud_database_details(
-    driver: WebDriver,
-    email_address: str,
-    password: str,
-    cloud_license_name: str,
-    cloud_database_name: str,
-) -> DatabaseDict:
-    """Create a cloud database and get its details.
-
-    Returns database details.
-    """
-    vws_web_tools.log_in(
-        driver=driver,
-        email_address=email_address,
-        password=password,
-    )
-    vws_web_tools.wait_for_logged_in(driver=driver)
-    vws_web_tools.create_license(
-        driver=driver, license_name=cloud_license_name
-    )
-
-    vws_web_tools.create_cloud_database(
-        driver=driver,
-        database_name=cloud_database_name,
-        license_name=cloud_license_name,
-    )
-
-    return vws_web_tools.get_database_details(
-        driver=driver,
-        database_name=cloud_database_name,
-    )
 
 
 def _create_and_get_vumark_details(
@@ -84,9 +50,7 @@ def _create_and_get_vumark_details(
 
 def _generate_secrets_file_content(
     *,
-    cloud_database_details: DatabaseDict,
     vumark_details: VuMarkDatabaseDict,
-    inactive_database_details: DatabaseDict,
     inactive_vumark_details: VuMarkDatabaseDict,
     vumark_target_id: str,
     model_target_web_api_details: ModelTargetWebAPIDict,
@@ -96,18 +60,7 @@ def _generate_secrets_file_content(
     """Generate the content of a secrets file."""
     return textwrap.dedent(
         text=f"""\
-        VUFORIA_TARGET_MANAGER_DATABASE_NAME={cloud_database_details["database_name"]}
-        VUFORIA_DATABASE_ID={cloud_database_details["database_id"]}
-        VUFORIA_SERVER_ACCESS_KEY={cloud_database_details["server_access_key"]}
-        VUFORIA_SERVER_SECRET_KEY={cloud_database_details["server_secret_key"]}
-        VUFORIA_CLIENT_ACCESS_KEY={cloud_database_details["client_access_key"]}
-        VUFORIA_CLIENT_SECRET_KEY={cloud_database_details["client_secret_key"]}
 
-        INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME={inactive_database_details["database_name"]}
-        INACTIVE_VUFORIA_SERVER_ACCESS_KEY={inactive_database_details["server_access_key"]}
-        INACTIVE_VUFORIA_SERVER_SECRET_KEY={inactive_database_details["server_secret_key"]}
-        INACTIVE_VUFORIA_CLIENT_ACCESS_KEY={inactive_database_details["client_access_key"]}
-        INACTIVE_VUFORIA_CLIENT_SECRET_KEY={inactive_database_details["client_secret_key"]}
 
         VUMARK_VUFORIA_TARGET_MANAGER_DATABASE_NAME={vumark_details["database_name"]}
         VUMARK_VUFORIA_TARGET_ID={vumark_target_id}
@@ -145,40 +98,6 @@ def _create_and_get_vumark_target_id(
         database_name=vumark_database_name,
         target_name=vumark_template_name,
     )
-
-
-def _create_and_get_inactive_database_details(
-    driver: WebDriver,
-    email_address: str,
-    password: str,
-    cloud_license_name: str,
-    cloud_database_name: str,
-) -> DatabaseDict:
-    """Create a cloud database, get its details, then delete the license to
-    make it inactive.
-    """
-    vws_web_tools.log_in(
-        driver=driver,
-        email_address=email_address,
-        password=password,
-    )
-    vws_web_tools.wait_for_logged_in(driver=driver)
-    vws_web_tools.create_license(
-        driver=driver, license_name=cloud_license_name
-    )
-    vws_web_tools.create_cloud_database(
-        driver=driver,
-        database_name=cloud_database_name,
-        license_name=cloud_license_name,
-    )
-    cloud_database_details = vws_web_tools.get_database_details(
-        driver=driver,
-        database_name=cloud_database_name,
-    )
-    vws_web_tools.delete_license(
-        driver=driver, license_name=cloud_license_name
-    )
-    return cloud_database_details
 
 
 def _create_and_get_inactive_vumark_details(
@@ -233,14 +152,12 @@ def _get_model_target_web_api_details(
     )
 
 
-def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
+def _create_vuforia_resource_names() -> tuple[str, str]:
     """Create names for Vuforia resources."""
     time = dt.datetime.now(tz=dt.UTC).strftime(
         format="%Y-%m-%d-%H-%M-%S",
     )
     return (
-        f"my-cloud-license-{time}",
-        f"my-cloud-database-{time}",
         f"my-vumark-database-{time}",
         f"my-vumark-template-{time}",
     )
@@ -256,16 +173,6 @@ def main() -> None:
     time = dt.datetime.now(tz=dt.UTC).strftime(
         format="%Y-%m-%d-%H-%M-%S",
     )
-    inactive_driver = vws_web_tools.create_chrome_driver()
-    inactive_database_details = _create_and_get_inactive_database_details(
-        driver=inactive_driver,
-        email_address=email_address,
-        password=password,
-        cloud_license_name=f"my-inactive-cloud-license-{time}",
-        cloud_database_name=f"my-inactive-cloud-database-{time}",
-    )
-    inactive_driver.quit()
-
     inactive_vumark_driver = vws_web_tools.create_chrome_driver()
     inactive_vumark_details = _create_and_get_inactive_vumark_details(
         driver=inactive_vumark_driver,
@@ -295,21 +202,11 @@ def main() -> None:
         file = files_to_create[-1]
         _ = sys.stdout.write(f"Creating database {file.name}\n")
         (
-            cloud_license_name,
-            cloud_database_name,
             vumark_database_name,
             vumark_template_name,
         ) = _create_vuforia_resource_names()
 
         try:
-            _ = sys.stdout.write("Creating cloud database details\n")
-            cloud_database_details = _create_and_get_cloud_database_details(
-                driver=driver,
-                email_address=email_address,
-                password=password,
-                cloud_license_name=cloud_license_name,
-                cloud_database_name=cloud_database_name,
-            )
             _ = sys.stdout.write("Creating VuMark database details\n")
             vumark_details = _create_and_get_vumark_details(
                 driver=driver,
@@ -329,9 +226,7 @@ def main() -> None:
         driver.quit()
 
         file_contents = _generate_secrets_file_content(
-            cloud_database_details=cloud_database_details,
             vumark_details=vumark_details,
-            inactive_database_details=inactive_database_details,
             inactive_vumark_details=inactive_vumark_details,
             vumark_target_id=vumark_target_id,
             model_target_web_api_details=model_target_web_api_details,

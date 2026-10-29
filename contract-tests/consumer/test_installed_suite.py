@@ -74,7 +74,7 @@ def test_installed_suite(
             "-p",
             "core_checks",
             "--pyargs",
-            "vws_mock_contract_tests.database_summary",
+            "vws_mock_contract_tests.vumark_generation_api",
             "--collect-only",
             "-q",
         ],
@@ -112,7 +112,7 @@ def test_installed_suite(
             "--pyargs",
             os.environ.get(
                 key="CONTRACT_TEST_TARGET",
-                default="vws_mock_contract_tests.database_summary",
+                default="vws_mock_contract_tests.vumark_generation_api",
             ),
             "--skip-backend=real",
             "--skip-backend=mock",

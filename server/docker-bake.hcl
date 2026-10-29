@@ -3,7 +3,7 @@ variable "VERSION" {
 }
 
 group "default" {
-  targets = ["vws", "vwq", "target-manager"]
+  targets = ["vws", "target-manager"]
 }
 
 target "_base" {
@@ -20,14 +20,6 @@ target "vws" {
   ]
 }
 
-target "vwq" {
-  inherits = ["_base"]
-  target   = "vwq"
-  tags = [
-    "ghcr.io/vws-python/vuforia-vwq-mock:latest",
-    "ghcr.io/vws-python/vuforia-vwq-mock:${VERSION}",
-  ]
-}
 
 target "target-manager" {
   inherits = ["_base"]
