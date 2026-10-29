@@ -41,7 +41,7 @@ def enable_flask_in_process(
     Docker deployment runs, but not the deployment itself: all three
     applications are served from one process, so state which the
     deployment keeps in separate containers is shared here.
-    ``tests/mock_vws/test_docker.py`` covers the container split.
+    The Docker deployment tests cover the container split.
     """
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
     # ``requests`` in our tests, the Flask applications
