@@ -7,7 +7,10 @@ import pytest
 from tests.mock_vws.fixtures.real_credentials import (
     get_model_target_credentials,
 )
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
+from vws_mock_contract_tests.fixtures.credentials import (
+    InactiveVuMarkCloudDatabase,
+    VuMarkCloudDatabase,
+)
 
 
 @pytest.fixture(name="credentials_file", autouse=True, params=[False])
@@ -32,20 +35,21 @@ def fixture_credentials_file(
     _ = (tmp_path / "vuforia_secrets.env").write_text(data=contents)
 
 
-@pytest.fixture(
-    name="_vws_backend",
-    params=[VuforiaBackend.MOCK, VuforiaBackend.FLASK_IN_PROCESS],
-    ids=["in-memory", "flask"],
-)
-def fixture_backend_selection(
-    *, request: pytest.FixtureRequest
-) -> VuforiaBackend:
-    """Select credentials without setting up a service or making
-    requests.
+def test_credentials_without_backend(
+    vumark_vuforia_database: VuMarkCloudDatabase,
+    inactive_vumark_database: InactiveVuMarkCloudDatabase,
+) -> None:
+    """Implementation tests receive credentials without real settings or a
+    backend selector.
     """
-    backend = request.param
-    assert isinstance(backend, VuforiaBackend)
-    return backend
+    assert vumark_vuforia_database.server_access_key != ""
+    assert vumark_vuforia_database.server_secret_key != ""
+    assert inactive_vumark_database.server_access_key != ""
+    assert inactive_vumark_database.server_secret_key != ""
+    assert (
+        vumark_vuforia_database.server_access_key
+        != inactive_vumark_database.server_access_key
+    )
 
 
 @pytest.mark.parametrize(
