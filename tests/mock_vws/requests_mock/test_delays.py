@@ -1,16 +1,10 @@
 """Tests for delays through the `requests-mock` backend."""
 
-import io
-
 import pytest
 import requests
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MockVWS
-from mock_vws.database import CloudDatabase
-from tests.mock_vws.utils.usage_test_helpers import (
-    processing_time_seconds,
-)
 
 
 def test_default_no_delay() -> None:
@@ -18,8 +12,8 @@ def test_default_no_delay() -> None:
     with MockVWS():
         # With a very short timeout, the request should still succeed
         # because there is no delay
-        response = requests.get(
-            url="https://vws.vuforia.com/summary",
+        response = requests.post(
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={
                 "Date": rfc_1123_date(),
                 "Authorization": "bad_auth_token",
@@ -41,8 +35,8 @@ def test_delay_causes_timeout() -> None:
         MockVWS(response_delay_seconds=0.5),
         pytest.raises(expected_exception=requests.exceptions.Timeout),
     ):
-        _ = requests.get(
-            url="https://vws.vuforia.com/summary",
+        _ = requests.post(
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={
                 "Date": rfc_1123_date(),
                 "Authorization": "bad_auth_token",
@@ -60,8 +54,8 @@ def test_delay_allows_completion() -> None:
     """
     with MockVWS(response_delay_seconds=0.1):
         # This should succeed because timeout > delay
-        response = requests.get(
-            url="https://vws.vuforia.com/summary",
+        response = requests.post(
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={
                 "Date": rfc_1123_date(),
                 "Authorization": "bad_auth_token",
@@ -81,8 +75,8 @@ def test_delay_without_timeout() -> None:
     ):
         # Omitting the timeout is the behavior under test.
         # pylint: disable-next=missing-timeout
-        response = requests.get(  # noqa: S113
-            url="https://vws.vuforia.com/summary",
+        response = requests.post(  # noqa: S113
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={
                 "Date": rfc_1123_date(),
                 "Authorization": "bad_auth_token",
@@ -105,8 +99,8 @@ def test_delay_with_tuple_timeout() -> None:
     ):
         # Tuple timeout: (connect_timeout, read_timeout)
         # The read timeout (0.1) is less than the delay (0.5)
-        _ = requests.get(
-            url="https://vws.vuforia.com/summary",
+        _ = requests.post(
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={
                 "Date": rfc_1123_date(),
                 "Authorization": "bad_auth_token",
@@ -126,8 +120,8 @@ def test_custom_sleep_fn_called_on_delay() -> None:
         response_delay_seconds=5,
         sleep_fn=calls.append,
     ):
-        _ = requests.get(
-            url="https://vws.vuforia.com/summary",
+        _ = requests.post(
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={
                 "Date": rfc_1123_date(),
                 "Authorization": "bad_auth_token",
@@ -151,8 +145,8 @@ def test_custom_sleep_fn_called_on_timeout() -> None:
         ),
         pytest.raises(expected_exception=requests.exceptions.Timeout),
     ):
-        _ = requests.get(
-            url="https://vws.vuforia.com/summary",
+        _ = requests.post(
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={
                 "Date": rfc_1123_date(),
                 "Authorization": "bad_auth_token",
@@ -169,38 +163,3 @@ def test_custom_sleep_fn_called_on_timeout() -> None:
 # There is a race condition in this test type - if tests start to
 # fail, consider increasing the leeway.
 _LEEWAY = 1.0
-
-
-def test_default(image_file_failed_state: io.BytesIO) -> None:
-    """By default, targets in the mock takes 2 seconds to be processed."""
-    base_vws_url = "http://processing.example/prefix"
-    database = CloudDatabase()
-    with MockVWS(base_vws_url=base_vws_url) as mock:
-        mock.add_cloud_database(cloud_database=database)
-        time_taken = processing_time_seconds(
-            vuforia_database=database,
-            base_vws_url=base_vws_url,
-            image=image_file_failed_state,
-        )
-
-    expected = 2
-    assert expected - _LEEWAY < time_taken < expected + _LEEWAY
-
-
-def test_custom(image_file_failed_state: io.BytesIO) -> None:
-    """It is possible to set a custom processing time."""
-    base_vws_url = "http://processing.example/prefix"
-    database = CloudDatabase()
-    seconds = 5
-    with MockVWS(
-        processing_time_seconds=seconds, base_vws_url=base_vws_url
-    ) as mock:
-        mock.add_cloud_database(cloud_database=database)
-        time_taken = processing_time_seconds(
-            vuforia_database=database,
-            base_vws_url=base_vws_url,
-            image=image_file_failed_state,
-        )
-
-    expected = seconds
-    assert expected - _LEEWAY < time_taken < expected + _LEEWAY

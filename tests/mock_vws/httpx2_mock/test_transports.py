@@ -50,7 +50,7 @@ def test_close() -> None:
     with MockVWS(), pytest.raises(expected_exception=RuntimeError):
         _ = transport(
             method="GET",
-            url="https://vws.vuforia.com/summary",
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={},
             data=b"",
             request_timeout=30.0,
@@ -66,7 +66,7 @@ def test_aclose() -> None:
         await transport.aclose()
         await transport(
             method="GET",
-            url="https://vws.vuforia.com/summary",
+            url="https://vws.vuforia.com/targets/template/instances",
             headers={},
             data=b"",
             request_timeout=30.0,

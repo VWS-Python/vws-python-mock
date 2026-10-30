@@ -13,7 +13,6 @@ import pytest
 from vws_mock_contract_tests.utils import Endpoint
 from vws_mock_contract_tests.utils.assertions import (
     assert_valid_date_header,
-    assert_vwq_failure,
     assert_vws_failure,
 )
 from vws_mock_contract_tests.utils.backend_capabilities import (
@@ -24,22 +23,14 @@ from vws_mock_contract_tests.utils.too_many_requests import (
 )
 
 
-def test_not_integer(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_not_integer(endpoint: Endpoint) -> None:
     """
     A ``BAD_REQUEST`` error is given when the given ``Content-
     Length`` is
     not an integer.
     """
-    if not bool(endpoint.headers.get("Content-Type")):
-        return
-
     content_length = "0.4"
-
-    new_headers = {
-        **endpoint.headers,
-        "Content-Length": content_length,
-    }
-
+    new_headers = {**endpoint.headers, "Content-Length": content_length}
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,
         path_url=endpoint.path_url,
@@ -51,29 +42,20 @@ def test_not_integer(endpoint: Endpoint, base_vwq_url: str) -> None:
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
     )
-
     response = new_endpoint.send()
     handle_server_errors(response=response)
     assert response.status_code == HTTPStatus.BAD_REQUEST
-
-    if endpoint.base_url == base_vwq_url:
-        assert not bool(response.text)
-        assert response.headers == {
-            "Content-Length": str(object=len(response.text)),
-            "Connection": "Close",
-        }
-        return
-
     assert_valid_date_header(response=response)
     expected_response_text = textwrap.dedent(
-        text="""\
-            <html>\r
-            <head><title>400 Bad Request</title></head>\r
-            <body>\r
-            <center><h1>400 Bad Request</h1></center>\r
-            </body>\r
-            </html>\r
-            """,
+        text=(
+            "            <html>\r\n"
+            "            <head><title>400 Bad Request</title></head>\r\n"
+            "            <body>\r\n"
+            "            <center><h1>400 Bad Request</h1></center>\r\n"
+            "            </body>\r\n"
+            "            </html>\r\n"
+            "            "
+        ),
     )
     assert response.text == expected_response_text
     expected_headers = {
@@ -87,26 +69,15 @@ def test_not_integer(endpoint: Endpoint, base_vwq_url: str) -> None:
 
 
 def test_too_large(
-    endpoint: Endpoint,
-    backend_capabilities: BackendCapabilities,
-    base_vwq_url: str,
+    endpoint: Endpoint, backend_capabilities: BackendCapabilities
 ) -> None:
     """An error is given if the given content length is too large."""
     if not backend_capabilities.fast_oversized_content_length_response:
         pytest.skip(
             reason="This backend responds slowly to oversized Content-Length."
         )
-
-    if not bool(endpoint.headers.get("Content-Type")):
-        pytest.skip(reason="No Content-Type header for this request")
-
     content_length = str(object=int(endpoint.headers["Content-Length"]) + 1)
-
-    new_headers = {
-        **endpoint.headers,
-        "Content-Length": content_length,
-    }
-
+    new_headers = {**endpoint.headers, "Content-Length": content_length}
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,
         path_url=endpoint.path_url,
@@ -118,23 +89,9 @@ def test_too_large(
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
     )
-
     response = new_endpoint.send()
-
-    # We do not use ``handle_server_errors`` here because we do not want to
-    # retry on the Gateway Timeout.
-    if endpoint.base_url == base_vwq_url:
-        assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
-        assert not bool(response.text)
-        assert response.headers == {
-            "Content-Length": str(object=len(response.text)),
-            "Connection": "keep-alive",
-        }
-        return
-
     handle_server_errors(response=response)
     assert_valid_date_header(response=response)
-    # We have seen both of these response texts.
     assert response.text in {"stream timeout", ""}
     expected_headers = {
         "Content-Length": str(object=len(response.text)),
@@ -147,23 +104,18 @@ def test_too_large(
     assert response.status_code == HTTPStatus.REQUEST_TIMEOUT
 
 
-def test_too_small(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_too_small(endpoint: Endpoint) -> None:
     """
     An ``UNAUTHORIZED`` response is given if the given content
     length is
     too small.
     """
-    if not bool(endpoint.headers.get("Content-Type")):
-        return
-
     real_content_length = len(endpoint.data)
     content_length = real_content_length - 1
-
     new_headers = {
         **endpoint.headers,
         "Content-Length": str(object=content_length),
     }
-
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,
         path_url=endpoint.path_url,
@@ -175,22 +127,8 @@ def test_too_small(endpoint: Endpoint, base_vwq_url: str) -> None:
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
     )
-
     response = new_endpoint.send()
-
     handle_server_errors(response=response)
-
-    if endpoint.base_url == base_vwq_url:
-        assert_vwq_failure(
-            response=response,
-            status_code=HTTPStatus.UNAUTHORIZED,
-            content_type="application/json",
-            cache_control=None,
-            www_authenticate="VWS",
-            connection="keep-alive",
-        )
-        return
-
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.UNAUTHORIZED,

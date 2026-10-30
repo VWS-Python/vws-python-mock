@@ -37,10 +37,6 @@ FROM base AS vws
 ENV VWS_HOST=0.0.0.0
 CMD ["-m", "vws_mock_server.vws"]
 
-FROM base AS vwq
-ENV VWQ_HOST=0.0.0.0
-CMD ["-m", "vws_mock_server.vwq"]
-
 FROM base AS target-manager
 ENV TARGET_MANAGER_HOST=0.0.0.0
 CMD ["-m", "vws_mock_server.target_manager"]

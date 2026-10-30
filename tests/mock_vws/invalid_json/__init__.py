@@ -1,1 +1,1 @@
-"""Invalid json tests."""
+"""Compatibility package for the shared contract suite."""

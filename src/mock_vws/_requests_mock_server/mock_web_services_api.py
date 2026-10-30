@@ -1,38 +1,27 @@
 """A fake implementation of the Vuforia Web Services API.
 
 See
-https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
+https://developer.vuforia.com/library/vuforia-engine/web-api/vumark-generation-web-api/
 """
 
-import base64
-import copy
-import datetime as dt
 import email.utils
 import uuid
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import NotRequired, TypedDict
-from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
-from pydantic import JsonValue, TypeAdapter
 
 from mock_vws._constants import (
     VUMARK_PDF,
     VUMARK_PNG,
     VUMARK_SVG,
-    ResultCodes,
     TargetStatuses,
 )
-from mock_vws._matching import matching_targets
 from mock_vws._mock_common import (
-    RECO_COUNTS_DOWNLOAD_PATH_PATTERN,
-    RECO_COUNTS_REPORT_PATH_PATTERN,
     RequestData,
     Route,
     RouteDefinition,
     json_dump,
-    sorted_targets,
 )
 from mock_vws._model_target_web_api import (
     create_model_target_dataset,
@@ -45,21 +34,13 @@ from mock_vws._model_target_web_api import (
     oauth2_token,
     update_oauth2_client_credential_scopes,
 )
-from mock_vws._reco_counts_web_api import (
-    create_reco_counts_report,
-    download_reco_counts_report,
-)
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
-    FailError,
     InvalidAcceptHeaderError,
-    InvalidTargetTypeError,
     TargetStatusNotSuccessError,
-    TargetStatusProcessingError,
     ValidatorError,
 )
-from mock_vws.database import CloudDatabase, VuMarkDatabase
-from mock_vws.image_matchers import ImageMatcher
+from mock_vws.database import VuMarkDatabase
 from mock_vws.model_target import (
     ModelTargetDatasetType,
     ModelTargetFailureResponse,
@@ -67,37 +48,11 @@ from mock_vws.model_target import (
     ModelTargetGenerationWarning,
     ModelTargetRequest,
 )
-from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
-from mock_vws.target_raters import TargetTrackingRater
 from mock_vws.vumark import VuMarkGenerationFailure
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 _MODEL_TARGET_DATASET_UUID_PATTERN = "[A-Za-z0-9-]+"
-
-
-class _AddTargetBody(TypedDict):
-    """A validated add-target request body."""
-
-    name: str
-    width: float
-    image: str
-    active_flag: NotRequired[bool | None]
-    application_metadata: NotRequired[str | None]
-
-
-class _UpdateTargetBody(TypedDict):
-    """A validated update-target request body."""
-
-    name: NotRequired[str]
-    width: NotRequired[float]
-    image: NotRequired[str]
-    active_flag: NotRequired[bool | None]
-    application_metadata: NotRequired[str | None]
-
-
-_ADD_TARGET_BODY_ADAPTER = TypeAdapter(type=_AddTargetBody)
-_UPDATE_TARGET_BODY_ADAPTER = TypeAdapter(type=_UpdateTargetBody)
 
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
@@ -151,66 +106,32 @@ def route(
 # This single facade intentionally exposes the complete mock route surface;
 # splitting it would separate one cohesive public API.
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
-class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
+class MockVuforiaWebServicesAPI:
     """A fake implementation of the Vuforia Web Services API."""
 
     def __init__(
         self,
         *,
         target_manager: TargetManager,
-        base_vws_url: str,
         processing_time_seconds: float,
-        model_target_generation_failure: (ModelTargetGenerationFailure | None),
+        model_target_generation_failure: ModelTargetGenerationFailure | None,
         model_target_failure_response: ModelTargetFailureResponse | None,
-        model_target_generation_warning: (ModelTargetGenerationWarning | None),
+        model_target_generation_warning: ModelTargetGenerationWarning | None,
         model_target_training_allowance_exceeded: bool,
-        duplicate_match_checker: ImageMatcher,
-        target_tracking_rater: TargetTrackingRater,
         vumark_generation_failure: VuMarkGenerationFailure | None,
     ) -> None:
-        """
-        Args:
-            target_manager: Target Manager which stores databases.
-            base_vws_url: The base URL which the mock VWS API is served
-        from.
-                Generated reco counts reports are served from this URL.
-            processing_time_seconds: The number of seconds to process each
-              image for. In the real Vuforia Web Services, this is not
-              deterministic.
-            model_target_generation_failure: A configured failure returned
-                after Model Target dataset processing completes.
-            model_target_failure_response: A configured response returned
-        for
-                selected Model Target dataset request phases.
-            model_target_generation_warning: A configured warning returned
-                after Model Target dataset processing completes.
-            model_target_training_allowance_exceeded: Whether Model Target
-                dataset creation is rejected because the account has no
-                training allowance remaining.
-            duplicate_match_checker: A callable which takes two image
-        values
-              and returns a match score, or ``None`` if they are not
-              duplicates.
-            target_tracking_rater: A callable for rating targets for
-        tracking.
-            vumark_generation_failure: A configured failure which takes
-                precedence over normal VuMark generation handling.
-
-        Attributes:
-            routes: The `Route`s to be used in the mock.
+        """Create handlers for Model Targets, OAuth2, and VuMark
+        generation.
         """
         self._target_manager = target_manager
-        self._base_vws_url = base_vws_url
         self.routes: set[Route] = {route.bind(api=self) for route in _ROUTES}
-        self._processing_time_seconds: int | float = processing_time_seconds
+        self._processing_time_seconds = processing_time_seconds
         self._model_target_generation_failure = model_target_generation_failure
         self._model_target_failure_response = model_target_failure_response
         self._model_target_generation_warning = model_target_generation_warning
         self._model_target_training_allowance_exceeded = (
             model_target_training_allowance_exceeded
         )
-        self._duplicate_match_checker = duplicate_match_checker
-        self._target_tracking_rater = target_tracking_rater
         self._vumark_generation_failure = vumark_generation_failure
 
     def _configured_model_target_failure(
@@ -498,189 +419,6 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         )
 
     @route(
-        path_pattern=RECO_COUNTS_REPORT_PATH_PATTERN,
-        http_methods={HTTPMethod.POST},
-    )
-    def reco_counts_report(self, request: RequestData) -> _ResponseType:
-        """Request a reco counts report for a database.
-
-        Fake implementation of
-        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
-        """
-        try:
-            database = run_services_validators(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.cloud_databases,
-                request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-            return create_reco_counts_report(
-                request_body=request.body,
-                database=database,
-                report_store=self._target_manager,
-                generation_time_seconds=self._processing_time_seconds,
-                base_url=self._base_vws_url.rstrip("/"),
-            )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-
-    @route(
-        path_pattern=RECO_COUNTS_DOWNLOAD_PATH_PATTERN,
-        http_methods={HTTPMethod.GET},
-    )
-    def download_reco_counts_report(
-        self,
-        request: RequestData,
-    ) -> _ResponseType:
-        """Download a generated reco counts report.
-
-        This stands in for the presigned URL which real Vuforia returns, so
-        it does not require any authorization beyond the query parameters of
-        that URL.
-        """
-        return download_reco_counts_report(
-            report_store=self._target_manager,
-            request_path=request.path,
-        )
-
-    @route(
-        path_pattern="/targets",
-        http_methods={HTTPMethod.POST},
-    )
-    def add_target(self, request: RequestData) -> _ResponseType:
-        """Add a target.
-
-        Fake implementation of
-        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#add
-        """
-        try:
-            database = run_services_validators(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.cloud_databases,
-                request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-
-        request_json = _ADD_TARGET_BODY_ADAPTER.validate_json(
-            request.body,
-            strict=True,
-        )
-        given_active_flag = request_json.get("active_flag")
-        active_flag = {
-            None: True,
-            True: True,
-            False: False,
-        }[given_active_flag]
-
-        application_metadata = request_json.get("application_metadata")
-
-        new_target = ImageTarget(
-            name=request_json["name"],
-            width=request_json["width"],
-            image_value=base64.b64decode(s=request_json["image"]),
-            active_flag=active_flag,
-            processing_time_seconds=self._processing_time_seconds,
-            application_metadata=application_metadata,
-            target_tracking_rater=self._target_tracking_rater,
-        )
-        database.targets.add(new_target)
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
-        status_code = HTTPStatus.CREATED
-        body: dict[str, JsonValue] = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.TARGET_CREATED.value,
-            "target_id": new_target.target_id,
-        }
-        body_json = json_dump(body=body)
-        headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "Content-Length": str(object=len(body_json)),
-            "x-envoy-upstream-service-time": "5",
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
-        }
-        return status_code, headers, body_json
-
-    @route(
-        path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
-        http_methods={HTTPMethod.DELETE},
-    )
-    def delete_target(self, request: RequestData) -> _ResponseType:
-        """Delete a target.
-
-        Fake implementation of
-        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#delete
-        """
-        try:
-            database = run_services_validators(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.cloud_databases,
-                request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-
-        target_id = request.path.split(sep="/")[-1]
-        target = database.get_target(target_id=target_id)
-
-        if target.status == TargetStatuses.PROCESSING.value:
-            target_processing_exception = TargetStatusProcessingError()
-            return (
-                target_processing_exception.status_code,
-                target_processing_exception.headers,
-                target_processing_exception.response_text,
-            )
-
-        now = dt.datetime.now(tz=target.upload_date.tzinfo)
-        new_target = copy.replace(
-            target,
-            delete_date=now,
-        )
-        database.targets.remove(target)
-        database.targets.add(new_target)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
-
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.SUCCESS.value,
-        }
-        body_json = json_dump(body=body)
-        headers = {
-            "Connection": "keep-alive",
-            "Content-Length": str(object=len(body_json)),
-            "Content-Type": "application/json",
-            "Date": date,
-            "server": "envoy",
-            "x-envoy-upstream-service-time": "5",
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
-        }
-        return HTTPStatus.OK, headers, body_json
-
-    @route(
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}/instances",
         http_methods={HTTPMethod.POST},
     )
@@ -714,8 +452,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             "application/pdf": VUMARK_PDF,
         }
         try:
-            all_databases: list[CloudDatabase | VuMarkDatabase] = [
-                *self._target_manager.cloud_databases,
+            all_databases: list[VuMarkDatabase] = [
                 *self._target_manager.vumark_databases,
             ]
             database = run_services_validators(
@@ -724,11 +461,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
                 request_method=request.method,
                 request_path=request.path,
                 databases=all_databases,
-                request_rate_limiter=self._target_manager.request_rate_limiter,
             )
-            if not isinstance(database, VuMarkDatabase):
-                raise InvalidTargetTypeError
-
             target_id = request.path.split(sep="/")[-2]
             target = database.get_vumark_target(target_id=target_id)
             if target.status != TargetStatuses.SUCCESS.value:
@@ -758,403 +491,3 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             "x-content-type-options": "nosniff",
         }
         return HTTPStatus.OK, headers, response_body
-
-    @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
-    def database_summary(self, request: RequestData) -> _ResponseType:
-        """Get a database summary report.
-
-        Fake implementation of
-        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
-        """
-        try:
-            database = run_services_validators(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.cloud_databases,
-                request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
-        body: dict[str, JsonValue] = {
-            "result_code": ResultCodes.SUCCESS.value,
-            "transaction_id": uuid.uuid4().hex,
-            "name": database.database_name,
-            "active_images": len(database.active_targets),
-            "inactive_images": len(database.inactive_targets),
-            "failed_images": len(database.failed_targets),
-            "target_quota": database.target_quota,
-            "total_recos": database.total_recos,
-            "current_month_recos": database.current_month_recos,
-            "previous_month_recos": database.previous_month_recos,
-            "processing_images": len(database.processing_targets),
-            "reco_threshold": database.reco_threshold,
-            "request_quota": database.request_quota,
-            "request_usage": 0,
-        }
-        body_json = json_dump(body=body)
-        headers = {
-            "Connection": "keep-alive",
-            "Content-Length": str(object=len(body_json)),
-            "Content-Type": "application/json",
-            "Date": date,
-            "server": "envoy",
-            "x-envoy-upstream-service-time": "5",
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
-        }
-        return HTTPStatus.OK, headers, body_json
-
-    @route(path_pattern="/targets", http_methods={HTTPMethod.GET})
-    def target_list(self, request: RequestData) -> _ResponseType:
-        """Get a list of all targets.
-
-        Fake implementation of
-        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#details-list
-        """
-        try:
-            database = run_services_validators(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.cloud_databases,
-                request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
-
-        response_results: list[JsonValue] = [
-            target.target_id
-            for target in sorted_targets(targets=database.not_deleted_targets)
-        ]
-        body: dict[str, JsonValue] = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.SUCCESS.value,
-            "results": response_results,
-        }
-        body_json = json_dump(body=body)
-        headers = {
-            "Connection": "keep-alive",
-            "Content-Length": str(object=len(body_json)),
-            "Content-Type": "application/json",
-            "Date": date,
-            "server": "envoy",
-            "x-envoy-upstream-service-time": "5",
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
-        }
-        return HTTPStatus.OK, headers, body_json
-
-    @route(
-        path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
-        http_methods={HTTPMethod.GET},
-    )
-    def get_target(self, request: RequestData) -> _ResponseType:
-        """Get details of a target.
-
-        Fake implementation of
-        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
-        """
-        try:
-            database = run_services_validators(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.cloud_databases,
-                request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-        target_id = request.path.split(sep="/")[-1]
-        target = database.get_target(target_id=target_id)
-
-        width = target.width
-        tracking_rating = target.tracking_rating
-        reco_rating = target.reco_rating
-        target_record: dict[str, JsonValue] = {
-            "target_id": target.target_id,
-            "active_flag": target.active_flag,
-            "name": target.name,
-            "width": width,
-            "tracking_rating": tracking_rating,
-            "reco_rating": reco_rating,
-        }
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
-
-        body: dict[str, JsonValue] = {
-            "result_code": ResultCodes.SUCCESS.value,
-            "transaction_id": uuid.uuid4().hex,
-            "target_record": target_record,
-            "status": target.status,
-        }
-        body_json = json_dump(body=body)
-        headers = {
-            "Connection": "keep-alive",
-            "Content-Length": str(object=len(body_json)),
-            "Content-Type": "application/json",
-            "Date": date,
-            "server": "envoy",
-            "x-envoy-upstream-service-time": "5",
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
-        }
-        return HTTPStatus.OK, headers, body_json
-
-    @route(
-        path_pattern=f"/duplicates/{_TARGET_ID_PATTERN}",
-        http_methods={HTTPMethod.GET},
-    )
-    def get_duplicates(self, request: RequestData) -> _ResponseType:
-        """Get targets which may be considered duplicates of a given
-        target.
-
-        Fake implementation of
-        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
-        """
-        try:
-            database = run_services_validators(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.cloud_databases,
-                request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-        target_id = request.path.split(sep="/")[-1]
-        target = database.get_target(target_id=target_id)
-
-        other_targets = {
-            other
-            for other in database.targets - {target}
-            if TargetStatuses.FAILED.value not in {target.status, other.status}
-            and TargetStatuses.PROCESSING.value != other.status
-            and other.active_flag
-        }
-
-        similar_targets: list[JsonValue] = [
-            other.target_id
-            for other in matching_targets(
-                matcher=self._duplicate_match_checker,
-                image_content=target.image_value,
-                targets=other_targets,
-            )
-        ]
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
-        body: dict[str, JsonValue] = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.SUCCESS.value,
-            "similar_targets": similar_targets,
-        }
-        body_json = json_dump(body=body)
-        headers = {
-            "Connection": "keep-alive",
-            "Content-Length": str(object=len(body_json)),
-            "Content-Type": "application/json",
-            "Date": date,
-            "server": "envoy",
-            "x-envoy-upstream-service-time": "5",
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
-        }
-
-        return HTTPStatus.OK, headers, body_json
-
-    @route(
-        path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
-        http_methods={HTTPMethod.PUT},
-    )
-    def update_target(self, request: RequestData) -> _ResponseType:
-        """Update a target.
-
-        Fake implementation of
-        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#update
-        """
-        try:
-            database = run_services_validators(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.cloud_databases,
-                request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-
-        target_id = request.path.split(sep="/")[-1]
-        target = database.get_target(target_id=target_id)
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
-
-        if target.status != TargetStatuses.SUCCESS.value:
-            exception = TargetStatusNotSuccessError()
-            return (
-                exception.status_code,
-                exception.headers,
-                exception.response_text,
-            )
-
-        request_json = _UPDATE_TARGET_BODY_ADAPTER.validate_json(
-            request.body,
-            strict=True,
-        )
-        name = request_json.get("name", target.name)
-        active_flag = request_json.get("active_flag", target.active_flag)
-
-        if active_flag is None:
-            fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
-            return (
-                fail_exception.status_code,
-                fail_exception.headers,
-                fail_exception.response_text,
-            )
-
-        gmt = ZoneInfo(key="GMT")
-        last_modified_date = dt.datetime.now(tz=gmt)
-
-        width = request_json.get("width", target.width)
-        application_metadata = request_json.get(
-            "application_metadata",
-            target.application_metadata,
-        )
-
-        image_value = target.image_value
-        if "image" in request_json:
-            image_value = base64.b64decode(s=request_json["image"])
-
-        if (
-            "application_metadata" in request_json
-            and application_metadata is None
-        ):
-            fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
-            return (
-                fail_exception.status_code,
-                fail_exception.headers,
-                fail_exception.response_text,
-            )
-
-        new_target = copy.replace(
-            target,
-            name=name,
-            width=width,
-            active_flag=active_flag,
-            application_metadata=application_metadata,
-            image_value=image_value,
-            last_modified_date=last_modified_date,
-        )
-
-        database.targets.remove(target)
-        database.targets.add(new_target)
-
-        body = {
-            "result_code": ResultCodes.SUCCESS.value,
-            "transaction_id": uuid.uuid4().hex,
-        }
-        body_json = json_dump(body=body)
-        headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "Content-Length": str(object=len(body_json)),
-            "x-envoy-upstream-service-time": "5",
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
-        }
-        return HTTPStatus.OK, headers, body_json
-
-    @route(
-        path_pattern=f"/summary/{_TARGET_ID_PATTERN}",
-        http_methods={HTTPMethod.GET},
-    )
-    def target_summary(self, request: RequestData) -> _ResponseType:
-        """Get a summary report for a target.
-
-        Fake implementation of
-        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#retrieve-report
-        """
-        try:
-            database = run_services_validators(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.cloud_databases,
-                request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-        target_id = request.path.split(sep="/")[-1]
-        target = database.get_target(target_id=target_id)
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
-        tracking_rating = target.tracking_rating
-        total_recos = target.total_recos
-        current_month_recos = target.current_month_recos
-        previous_month_recos = target.previous_month_recos
-        body: dict[str, JsonValue] = {
-            "status": target.status,
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.SUCCESS.value,
-            "database_name": database.database_name,
-            "target_name": target.name,
-            "upload_date": target.upload_date.strftime(format="%Y-%m-%d"),
-            "active_flag": target.active_flag,
-            "tracking_rating": tracking_rating,
-            "total_recos": total_recos,
-            "current_month_recos": current_month_recos,
-            "previous_month_recos": previous_month_recos,
-        }
-        body_json = json_dump(body=body)
-        headers = {
-            "Connection": "keep-alive",
-            "Content-Length": str(object=len(body_json)),
-            "Content-Type": "application/json",
-            "Date": date,
-            "server": "envoy",
-            "x-envoy-upstream-service-time": "5",
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
-        }
-
-        return HTTPStatus.OK, headers, body_json

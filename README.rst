@@ -1,99 +1,39 @@
-|Build Status| |PyPI|
-
 VWS Mock
 ========
 
-.. contents::
-   :local:
+Mock the Vuforia Model Target Web API and VuMark generation with ``requests``, ``httpx``, or ``httpx2``.
+Cloud Image Recognition, cloud image target management, and the VWQ service have been removed.
 
-Mock for the Vuforia Web Services (VWS) API, the Vuforia Web Query API, and the Model Target Web API.
+.. code-block:: console
 
-Mocking calls made to Vuforia
-------------------------------
+   $ pip install vws-python-mock vws-python
 
-``MockVWS`` intercepts requests made with `requests`_, `httpx`_ or `HTTPX2`_.
-
-.. code-block:: shell
-
-    pip install vws-python-mock
-
-This requires Python |minimum-python-version|\+.
+The examples use ``vws-python`` as the client.
 
 .. code-block:: python
 
-    """Make a request to the Vuforia Web Services API mock."""
+   """Generate a VuMark instance using a mock."""
 
-    import requests
+   from vws import VuMarkService
+   from vws.vumark_accept import VuMarkAccept
 
-    from mock_vws import MockVWS
-    from mock_vws.database import CloudDatabase
+   from mock_vws import MockVWS
+   from mock_vws.database import VuMarkDatabase
+   from mock_vws.target import VuMarkTarget
 
-    with MockVWS() as mock:
-        database = CloudDatabase()
-        mock.add_cloud_database(cloud_database=database)
-        # This will use the Vuforia mock.
-        _ = requests.get(url="https://vws.vuforia.com/summary", timeout=30)
+   target = VuMarkTarget(name="example-template")
+   database = VuMarkDatabase(vumark_targets={target})
+   with MockVWS() as mock:
+       mock.add_vumark_database(vumark_database=database)
+       client = VuMarkService(
+           server_access_key=database.server_access_key,
+           server_secret_key=database.server_secret_key,
+       )
+       result = client.generate_vumark_instance(
+           target_id=target.target_id,
+           instance_id="123",
+           accept=VuMarkAccept.PNG,
+       )
+       assert result.startswith(b"\x89PNG")
 
-``MockVWS`` also intercepts `httpx`_ requests:
-
-.. code-block:: python
-
-    """Make a request to the Vuforia Web Services API mock using httpx."""
-
-    import httpx
-
-    from mock_vws import MockVWS
-    from mock_vws.database import CloudDatabase
-
-    with MockVWS() as mock:
-        database = CloudDatabase()
-        mock.add_cloud_database(cloud_database=database)
-        # This will use the Vuforia mock.
-        _ = httpx.get(url="https://vws.vuforia.com/summary", timeout=30)
-
-``MockVWS`` also intercepts `HTTPX2`_ requests, with no need for ``httpx2.alias_httpx()``:
-
-.. code-block:: python
-
-    """Make a request to the Vuforia Web Services API mock using httpx2."""
-
-    import httpx2
-
-    from mock_vws import MockVWS
-    from mock_vws.database import CloudDatabase
-
-    with MockVWS() as mock:
-        database = CloudDatabase()
-        mock.add_cloud_database(cloud_database=database)
-        # This will use the Vuforia mock.
-        _ = httpx2.get(url="https://vws.vuforia.com/summary", timeout=30)
-
-Asynchronous ``httpx`` and `HTTPX2`_ clients are intercepted as well.
-
-By default, an exception will be raised if any requests to unmocked addresses are made.
-
-.. _requests: https://pypi.org/project/requests/
-.. _httpx: https://pypi.org/project/httpx/
-.. _HTTPX2: https://httpx2.pydantic.dev/
-
-Using containers to mock calls to Vuforia from any language
------------------------------------------------------------
-
-You can run a Mock VWS instance using Docker or Apple's ``container`` CLI.
-
-This allows you to run tests against a mock VWS instance regardless of the language or tooling you are using.
-
-See the `the instructions <https://vws-python.github.io/vws-python-mock/docker.html>`__ for how to do this.
-
-Full documentation
-------------------
-
-See the `full documentation <https://vws-python.github.io/vws-python-mock/>`__.
-This includes details on how to use the mock, options, and details of the differences between the mock and the real Vuforia Web Services.
-
-
-.. |Build Status| image:: https://github.com/VWS-Python/vws-python-mock/actions/workflows/test.yml/badge.svg?branch=main
-   :target: https://github.com/VWS-Python/vws-python-mock/actions
-.. |PyPI| image:: https://badge.fury.io/py/VWS-Python-Mock.svg
-    :target: https://badge.fury.io/py/VWS-Python-Mock
-.. |minimum-python-version| replace:: 3.15
+See the `full documentation <https://vws-python.github.io/vws-python-mock/>`_ for Model Target configuration, HTTP transports, and containers.

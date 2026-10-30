@@ -12,7 +12,6 @@ from vws_mock_server.target_manager import (
     TARGET_MANAGER,
     TARGET_MANAGER_FLASK_APP,
 )
-from vws_mock_server.vwq import CLOUDRECO_FLASK_APP
 from vws_mock_server.vws import VWS_FLASK_APP
 
 
@@ -21,8 +20,6 @@ def _clear_target_manager() -> None:
     """Remove everything from the target manager which the Flask
     applications share.
     """
-    for cloud_database in TARGET_MANAGER.cloud_databases:
-        TARGET_MANAGER.remove_cloud_database(cloud_database=cloud_database)
     for vumark_database in TARGET_MANAGER.vumark_databases:
         TARGET_MANAGER.remove_vumark_database(vumark_database=vumark_database)
     for dataset_uuid in TARGET_MANAGER.model_target_datasets:
@@ -41,7 +38,6 @@ def _(
     monkeypatch: pytest.MonkeyPatch,
     target_manager_url: str,
     base_vws_url: str,
-    base_vwq_url: str,
 ) -> Iterator[None]:
     """Enable a mock service backed by the Flask applications.
 
@@ -58,12 +54,6 @@ def _(
             mock_obj=mock_obj,
             flask_app=VWS_FLASK_APP,
             base_url=base_vws_url,
-        )
-
-        add_flask_app_to_mock(
-            mock_obj=mock_obj,
-            flask_app=CLOUDRECO_FLASK_APP,
-            base_url=base_vwq_url,
         )
 
         add_flask_app_to_mock(

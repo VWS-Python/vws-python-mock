@@ -68,9 +68,7 @@ def _timeout_error(request: httpx.Request) -> httpx2.ReadTimeout:
 def start_httpx2_router(
     *,
     mock_vws_api: _APIHandler,
-    mock_vwq_api: _APIHandler,
     base_vws_url: str,
-    base_vwq_url: str,
     response_delay_seconds: float,
     sleep_fn: Callable[[float], None],
     real_http: bool,
@@ -78,9 +76,7 @@ def start_httpx2_router(
     """Route HTTPX2 requests to the Vuforia fakes through RESPX."""
     return start_respx_router(
         mock_vws_api=mock_vws_api,
-        mock_vwq_api=mock_vwq_api,
         base_vws_url=base_vws_url,
-        base_vwq_url=base_vwq_url,
         response_delay_seconds=response_delay_seconds,
         sleep_fn=sleep_fn,
         real_http=real_http,

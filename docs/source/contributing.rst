@@ -70,50 +70,17 @@ Then run ``pytest``:
 Connecting to Vuforia
 ---------------------
 
-To connect to Vuforia, Vuforia target databases must be created via the Vuforia Web UI.
-Then, secret keys must be set as environment variables.
-
-The test infrastructure allows those keys to be set in the file :file:`vuforia_secrets.env`.
-See :file:`vuforia_secrets.env.example` for the environment variables to set.
-
-Do not use a target database that you are using for other purposes.
-This is because the test suite adds and deletes targets.
-
-To create a target database, first create a license key in the `Vuforia License Manager`_. Then, add a database from the `Vuforia Target Manager`_.
-
-To find the environment variables to set in the :file:`vuforia_secrets.env` file, visit the Target Database in the `Vuforia Target Manager`_ and view the "Database Access Keys".
-
-Two Cloud databases are necessary in order to run all the Cloud Target tests.
-One of those must be an inactive project.
-The script creates the inactive project automatically by deleting its license.
-
-VuMark tests require one VuMark database.
-
-Targets sometimes get stuck at the "Processing" stage meaning that they cannot be deleted.
-When this happens, create a new target database to use for testing.
-
-To create databases without using the browser, use :file:`admin/create_secrets_files.py`:
-
-.. code-block:: bash
-
-      $ export VWS_EMAIL_ADDRESS=...
-      $ export VWS_PASSWORD=...
-      $ export NEW_SECRETS_DIR=...
-      # You may have to run this a few times, but it is idempotent.
-      $ python admin/create_secrets_files.py
-      # Each generated file gets its own active Cloud database credentials.
-
-For the complete archive and GitHub Actions setup procedure, see :doc:`ci-setup`.
-
-.. _Vuforia License Manager: https://developer.vuforia.com/vui/develop/licenses
-.. _Vuforia Target Manager: https://developer.vuforia.com/vui/develop/databases
+Local mock tests use synthetic credentials and do not need a Vuforia account.
+Real-service checks use VuMark database credentials and separate Model Target OAuth2 credentials.
+Use ``admin/create_secrets_files.py`` to provision the supported credentials.
+See :doc:`ci-setup` for the encrypted archive setup.
 
 Skipping Some Tests
 -------------------
 
 The tests run against several backends: the real Vuforia, the in-memory mock, and the Flask applications of the mock served in the test process.
 The last of these exercises the handlers which the Docker deployment runs, but not the split between its containers.
-The tests in ``tests/mock_vws/test_docker.py`` build and run the containers for that.
+The tests in ``server/tests/vws_mock_server_tests/test_docker.py`` build and run the containers for that.
 The `pytest-multi-backend`_ plugin adds options which skip some tests:
 
 .. code-block:: text
@@ -130,41 +97,13 @@ Give an option once per backend or marker to skip.
 
 .. _pytest-multi-backend: https://adamtheturtle.github.io/pytest-multi-backend/
 
-Shared database credentials
----------------------------
-
-The shared API client fixtures, raw query helpers and recognition-report helpers accept ``CloudDatabaseCredentials`` from ``vws_mock_contract_tests.fixtures.credentials``.
-An adapter supplies an object with read-only string attributes ``server_access_key``, ``server_secret_key``, ``client_access_key``, ``client_secret_key`` and ``database_id``.
-The helpers use those values for signing HTTP requests and constructing report URLs.
-They do not require a ``mock_vws.database.CloudDatabase`` object or access to its targets and storage state.
-The current adapters' database objects satisfy the protocol, and another adapter can provide its own credential object.
-Backend setup and mock controls remain responsible for managing database state.
-
-Tests which read a database name use ``NamedCloudDatabaseCredentials`` from the same module.
-It adds the read-only string attribute ``database_name`` for summary responses, recognition-count controls and report requests which distinguish a database's name from its ID.
-
 Shared backend setup
 --------------------
 
-An adapter supplies the service URLs through ``base_vws_url`` and ``base_vwq_url``.
-The shared client and prepared-request fixtures use those URLs for HTTP requests.
-The adapter also supplies ``vws_client_class`` and the active, inactive and VuMark database credentials required by each test.
-Mock adapters use synthetic credentials.
-Real Vuforia credentials and account restrictions belong to the real adapter.
-
-The ``verify_mock_vuforia`` fixture sets up the selected VWS and query backend.
-The ``verify_model_target_mock_vuforia`` fixture does the same for the Model Target API.
+Adapters supply ``base_vws_url`` and the VuMark/Model Target credential fixtures.
+``verify_mock_vuforia`` sets up VuMark generation, and ``verify_model_target_mock_vuforia`` sets up Model Targets.
 Their mock-only counterparts are ``mock_only_vuforia`` and ``model_target_mock_only_vuforia``.
-Each setup fixture yields ``None`` once its backend is ready.
-The adapter handles cleanup after the test.
-Shared fixtures depend on these public setup fixtures with a ``None`` annotation.
-Backend selection values stay inside the adapter.
-
-Adapters declare supported behavior through ``BackendCapabilities`` from ``vws_mock_contract_tests.utils.backend_capabilities``.
-Shared tests use those values for ordering, rate-limit windows and transport checks.
-The ``seed_recognition_counts`` operation accepts a database name, a target ID and recognition counts through ``SeedRecognitionCounts`` from ``vws_mock_contract_tests.utils.recognition_counts``.
-The ``unrouted_requests`` fixture supplies ``UnroutedRequests`` from ``vws_mock_contract_tests.utils.unrouted_requests``, including whether unmatched requests produce an HTTP response.
-These controls keep backend operations and transport differences behind the adapter's fixture contract.
+Setup fixtures yield ``None`` and leave backend selection inside the adapter.
 
 Installed contract tests
 ------------------------
@@ -181,7 +120,7 @@ They use the Docker engine selected by the current Docker configuration by defau
 
 .. code-block:: console
 
-   $ uv run --group=dev pytest tests/mock_vws/test_docker.py
+   $ uv run --group=dev pytest server/tests/vws_mock_server_tests/test_docker.py
 
 .. _socktainer-setup:
 
@@ -199,13 +138,13 @@ In another terminal, select its socket for the test command:
 .. code-block:: console
 
    $ DOCKER_HOST="unix://$HOME/.socktainer/container.sock" \
-       uv run --group=dev pytest tests/mock_vws/test_docker.py
+       uv run --group=dev pytest server/tests/vws_mock_server_tests/test_docker.py
 
 The deployment tests automatically negotiate the API version.
 
 Both configurations exercise native health checks, published HTTP ports, application behavior and restarts.
 Running the mock directly with Apple's CLI uses the same images and is documented in :ref:`apple-container-setup`.
-Target-manager and VWQ use automatically published ports.
+The target manager uses an automatically published port.
 VWS keeps an explicit loopback binding so its report download URLs are known before startup.
 Test containers, image tags and networks are removed after the run, including when setup fails.
 Hosted CI continues to use Docker.
@@ -266,59 +205,6 @@ Continuous Integration
 ----------------------
 
 See :doc:`ci-setup`.
-
-Learnings about VWS
--------------------
-
-Vuforia Web Services, at the time of writing, does not behave exactly as documented.
-
-The following list includes details of differences between VWS and expected or documented behavior.
-
-When attempting to delete a target immediately after creating it, a ``FORBIDDEN`` response is returned.
-This is because the target goes into a processing state.
-
-``image`` is required for ``POST /targets``, but it is documented as not mandatory.
-
-The ``tracking_rating`` returned by ``GET /targets/<target_id>`` can be -1.
-This happens only while a newly uploaded target is processing, and it lasts for about a second.
-Updating a target returns it to the processing state but does not return the rating to -1; the new image's rating is reported straight away.
-
-The database summary from ``GET /summary`` has multiple undocumented return fields.
-
-The database summary from ``GET /summary`` is not immediately accurate.
-
-The documentation page `Vuforia Query Web API`_ states that the ``Content-Type`` header must be set to ``multipart/form-data``.
-However, it must be set to ``multipart/form-data; boundary=<BOUNDARY>`` where ``<BOUNDARY>`` is the boundary used when encoding the form data.
-
-The documentation page `Vuforia Query Web API`_ states that ``Content-Type`` will be the only response header.
-This is not the case.
-
-The documentation page `Vuforia Query Web API`_ states that 10 is the maximum allowed value of ``max_num_results``.
-However, the maximum allowed value is 50.
-
-A response to an invalid query may have an ``application/json`` content type but include text (not JSON) data.
-
-After deleting a target, for up to approximately 30 seconds, matching it with a query returns a 500 response.
-
-A target with the name ``\uffff`` gets stuck in processing.
-
-The documentation page `Vuforia Query Web API`_ states that "The API accepts requests with unknown data fields, and ignore the unknown fields.".
-This is not the case.
-
-The documentation page `Vuforia Query Web API`_ states "Maximum image size: 2.1 MPixel. 512 KiB for JPEG, 2MiB for PNG".
-However, JPEG images up to 2MiB are accepted.
-
-There is no documented limit on the number of pixels in an image, but ``POST /targets`` returns ``ImageTooLarge`` for an image with more than 37748736 pixels, whatever its file size, aspect ratio or color space.
-An image of a single color has a tiny file size whatever its dimensions, which is how this limit is reached.
-The Query API applies no such limit.
-It applies only its maximum width and height of 30000 pixels.
-
-The ``request_count`` in a database summary is always ``0``.
-
-The documentation for the target summary report says "Note: tracking_rating and ``reco_rating`` are provided only when status = success.".
-However, ``reco_rating`` is never provided and ``tracking_rating`` is provided even when the status is "failed".
-
-.. _Vuforia Query Web API: https://developer.vuforia.com/library/vuforia-engine/web-api/vuforia-query-web-api/
 
 Release Process
 ---------------

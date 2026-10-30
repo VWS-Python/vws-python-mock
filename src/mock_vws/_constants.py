@@ -39,38 +39,20 @@ class ResultCodes(Enum):
     """
 
     SUCCESS = "Success"
-    TARGET_CREATED = "TargetCreated"
     AUTHENTICATION_FAILURE = "AuthenticationFailure"
     REQUEST_TIME_TOO_SKEWED = "RequestTimeTooSkewed"
-    TARGET_NAME_EXIST = "TargetNameExist"
     UNKNOWN_TARGET = "UnknownTarget"
-    BAD_IMAGE = "BadImage"
-    IMAGE_TOO_LARGE = "ImageTooLarge"
-    METADATA_TOO_LARGE = "MetadataTooLarge"
-    # The documentation says "Start date is after the end date" but, at the
-    # time of writing, I do not know how to trigger that, therefore this is not
-    # tested.
-    DATE_RANGE_ERROR = "DateRangeError"
     FAIL = "Fail"
-    TARGET_STATUS_PROCESSING = "TargetStatusProcessing"
-    # This is tested only against the mock. We do not deliberately exhaust the
-    # real test database's quota because that would stop the verified-fake test
-    # suite from using it.
-    REQUEST_QUOTA_REACHED = "RequestQuotaReached"
+    # Processing VuMark templates are tested against the mock.
     TARGET_STATUS_NOT_SUCCESS = "TargetStatusNotSuccess"
-    TARGET_QUOTA_REACHED = "TargetQuotaReached"
     PROJECT_SUSPENDED = "ProjectSuspended"
-    PROJECT_INACTIVE = "ProjectInactive"
     # We have never seen a real response for a database in this state, so this
     # casing comes from Vuforia's result codes table rather than from an
     # observed response.
     PROJECT_HAS_NO_API_ACCESS = "ProjectHasNoApiAccess"
-    INACTIVE_PROJECT = "InactiveProject"
-    TOO_MANY_REQUESTS = "TooManyRequests"
     INVALID_ACCEPT_HEADER = "InvalidAcceptHeader"
     INVALID_INSTANCE_ID = "InvalidInstanceId"
     BAD_REQUEST = "BadRequest"
-    INVALID_TARGET_TYPE = "InvalidTargetType"
 
 
 @beartype
@@ -84,4 +66,3 @@ class TargetStatuses(Enum):
 
     PROCESSING = "processing"
     SUCCESS = "success"
-    FAILED = "failed"

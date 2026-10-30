@@ -11,16 +11,13 @@ from freezegun import freeze_time
 from vws_auth_tools import authorization_header
 
 from vws_mock_contract_tests.utils import Endpoint
-from vws_mock_contract_tests.utils.assertions import (
-    assert_vwq_failure,
-    assert_vws_failure,
-)
+from vws_mock_contract_tests.utils.assertions import assert_vws_failure
 from vws_mock_contract_tests.utils.too_many_requests import (
     handle_server_errors,
 )
 
 
-def test_incorrect_date_format(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_incorrect_date_format(endpoint: Endpoint) -> None:
     """A `BAD_REQUEST` response is returned when the date given in the
     date
     header is not in the expected format (RFC 1123) to VWS API.
@@ -31,7 +28,6 @@ def test_incorrect_date_format(endpoint: Endpoint, base_vwq_url: str) -> None:
     with freeze_time(time_to_freeze=datetime.now(tz=gmt)):
         now = datetime.now(tz=gmt)
         date_incorrect_format = now.strftime(format="%a %b %d %H:%M:%S")
-
     authorization_string = authorization_header(
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
@@ -41,13 +37,11 @@ def test_incorrect_date_format(endpoint: Endpoint, base_vwq_url: str) -> None:
         date=date_incorrect_format,
         request_path=endpoint.path_url,
     )
-
     new_headers = {
         **endpoint.headers,
         "Authorization": authorization_string,
         "Date": date_incorrect_format,
     }
-
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,
         path_url=endpoint.path_url,
@@ -60,21 +54,7 @@ def test_incorrect_date_format(endpoint: Endpoint, base_vwq_url: str) -> None:
         secret_key=endpoint.secret_key,
     )
     response = new_endpoint.send()
-
     handle_server_errors(response=response)
-
-    if endpoint.base_url == base_vwq_url:
-        assert response.text == "Malformed date header."
-        assert_vwq_failure(
-            response=response,
-            status_code=HTTPStatus.UNAUTHORIZED,
-            content_type="text/plain;charset=iso-8859-1",
-            cache_control=None,
-            www_authenticate="KWS",
-            connection="keep-alive",
-        )
-        return
-
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.BAD_REQUEST,

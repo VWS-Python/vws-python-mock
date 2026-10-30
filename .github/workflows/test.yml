@@ -32,110 +32,20 @@ jobs:
       matrix:
         python-version: ['3.15']
         ci_pattern:
-          - tests/mock_vws/query/test_content_type.py
-          - tests/mock_vws/query/test_success.py
-          - tests/mock_vws/query/test_incorrect_fields.py
-          - tests/mock_vws/query/test_max_num_results.py
-          - tests/mock_vws/query/test_result_order.py
-          - tests/mock_vws/query/test_include_target_data.py
-          - tests/mock_vws/query/test_accept_header.py
-          - tests/mock_vws/query/test_active_flag.py
-          - tests/mock_vws/query/test_bad_image.py
-          - tests/mock_vws/query/test_maximum_image_file_size.py
-          - tests/mock_vws/query/test_maximum_image_dimensions.py
-          - tests/mock_vws/query/test_image_formats.py
-          - tests/mock_vws/query/test_processing.py
-          - tests/mock_vws/query/test_update.py
-          - tests/mock_vws/query/test_deleted.py
-          - tests/mock_vws/query/test_target_status_failed.py
-          - tests/mock_vws/query/test_date_formats.py
-          - tests/mock_vws/query/test_inactive_project.py
-          - tests/mock_vws/query/test_truncated_body.py
-          - tests/mock_vws/add_target/test_content_types.py
-          - tests/mock_vws/add_target/test_missing_data.py
-          - tests/mock_vws/add_target/test_width.py
-          - tests/mock_vws/add_target/test_target_name.py
-          - tests/mock_vws/add_target/test_image.py
-          - tests/mock_vws/add_target/test_active_flag.py
-          - tests/mock_vws/add_target/test_unexpected_data.py
-          - tests/mock_vws/add_target/test_application_metadata.py
-          - tests/mock_vws/add_target/test_inactive_project.py
-          - tests/mock_vws/authorization_header/test_authorization_header.py
-          - tests/mock_vws/authorization_header/test_malformed.py::test_one_part_no_space
-          - tests/mock_vws/authorization_header/test_malformed.py::test_one_part_with_space
-          - tests/mock_vws/authorization_header/test_malformed.py::test_missing_signature
-          - tests/mock_vws/authorization_header/test_bad_key.py
-          - tests/mock_vws/mock_configuration
-          - tests/mock_vws/content_length/test_incorrect.py::test_not_integer
-          - tests/mock_vws/content_length/test_incorrect.py::test_too_large
-          - tests/mock_vws/content_length/test_incorrect.py::test_too_small
-          - tests/mock_vws/header_size/test_oversized_header_line.py::test_header_too_large
-          - tests/mock_vws/header_size/test_oversized_header_line.py::test_cookie_too_large
-          - tests/mock_vws/header_size/test_oversized_header_line.py::test_large_header_within_limit
-          - tests/mock_vws/database_summary/contract/test_database_summary.py::test_success
-          - tests/mock_vws/database_summary/contract/test_database_summary.py::test_active_images
-          - tests/mock_vws/database_summary/contract/test_database_summary.py::test_failed_images
-          - tests/mock_vws/database_summary/contract/test_database_summary.py::test_inactive_images
-          - tests/mock_vws/database_summary/contract/test_database_summary.py::test_inactive_failed
-          - tests/mock_vws/database_summary/contract/test_database_summary.py::test_deleted
-          - tests/mock_vws/database_summary/test_database_summary.py::test_processing_images
-          - tests/mock_vws/database_summary/contract/test_quotas.py
-          - tests/mock_vws/database_summary/contract/test_recos.py
-          - tests/mock_vws/database_summary/contract/test_request_usage.py
-          - tests/mock_vws/database_summary/contract/test_inactive_project.py
-          - tests/mock_vws/date_header/test_format.py
-          - tests/mock_vws/date_header/test_missing.py
-          - tests/mock_vws/date_header/test_skewed_time.py::test_date_out_of_range_after
-          - tests/mock_vws/date_header/test_skewed_time.py::test_date_out_of_range_before
-          - tests/mock_vws/date_header/test_skewed_time.py::test_date_in_range_after
-          - tests/mock_vws/date_header/test_skewed_time.py::test_date_in_range_before
-          - tests/mock_vws/delete_target
-          - tests/mock_vws/get_duplicates
-          - tests/mock_vws/get_target
-          - tests/mock_vws/invalid_given_id
-          - tests/mock_vws/invalid_json/test_invalid_json.py::test_not_json
-          - tests/mock_vws/invalid_json/test_invalid_json.py::test_not_an_object
-          - tests/mock_vws/invalid_json/test_invalid_json.py::test_not_utf_8
-          - tests/mock_vws/invalid_json/test_invalid_json.py::test_empty_body
-          - tests/mock_vws/invalid_json/test_invalid_json.py::test_invalid_json_with_skewed_time
-          - tests/mock_vws/target_list
-          - tests/mock_vws/reco_counts_report
-          - tests/mock_vws/test_target_raters.py
-          - tests/mock_vws/target_summary
-          - tests/mock_vws/unexpected_json
-          - tests/mock_vws/update_target/test_active_flag.py
-          - tests/mock_vws/update_target/test_application_metadata.py::test_base64_encoded
-          - tests/mock_vws/update_target/test_application_metadata.py::test_invalid_type
-          - tests/mock_vws/update_target/test_application_metadata.py::test_not_base64_encoded_processable
-          - tests/mock_vws/update_target/test_application_metadata.py::test_not_base64_encoded_not_processable
-          - tests/mock_vws/update_target/test_application_metadata.py::test_metadata_too_large
-          - tests/mock_vws/update_target/test_image.py::test_image_valid
-          - tests/mock_vws/update_target/test_image.py::test_bad_image_format_or_color_space
-          - tests/mock_vws/update_target/test_image.py::test_corrupted
-          - tests/mock_vws/update_target/test_image.py::test_truncated
-          - tests/mock_vws/update_target/test_image.py::test_image_too_large
-          - tests/mock_vws/update_target/test_image.py::test_not_base64_encoded_processable
-          - tests/mock_vws/update_target/test_image.py::test_not_base64_encoded_not_processable
-          - tests/mock_vws/update_target/test_image.py::test_not_image
-          - tests/mock_vws/update_target/test_image.py::test_invalid_type
-          - tests/mock_vws/update_target/test_image.py::test_rating_does_not_return_to_minus_one
-          - tests/mock_vws/update_target/test_image.py::test_rating_can_change
-          - tests/mock_vws/update_target/test_target_name.py::test_name_valid
-          - tests/mock_vws/update_target/test_target_name.py::test_name_invalid
-          - tests/mock_vws/update_target/test_target_name.py::test_existing_target_name
-          - tests/mock_vws/update_target/test_target_name.py::test_same_name_given
-          - tests/mock_vws/update_target/test_unexpected_data.py
-          - tests/mock_vws/update_target/test_update.py
-          - tests/mock_vws/update_target/test_width.py
-          - tests/mock_vws/update_target/test_inactive_project.py
-          - tests/mock_vws/test_model_target_training_allowance.py
+          - tests/mock_vws/authorization_header
+          - tests/mock_vws/date_header
+          - tests/mock_vws/content_length
+          - tests/mock_vws/header_size
+          - tests/mock_vws/invalid_json
           - tests/mock_vws/model_target_web_api
-          - tests/mock_vws/test_model_target_retries.py
           - tests/mock_vws/vumark_generation_api
-          - tests/mock_vws/test_target_validators.py
+          - tests/mock_vws/mock_configuration
           - tests/mock_vws/requests_mock
           - tests/mock_vws/respx_mock
           - tests/mock_vws/httpx2_mock
+          - tests/mock_vws/test_model_target_retries.py
+          - tests/mock_vws/test_model_target_training_allowance.py
+          - tests/mock_vws/test_target_validators.py
           - server/tests/vws_mock_server_tests/flask_app
           - server/tests/vws_mock_server_tests/test_healthcheck.py
           - server/tests/vws_mock_server_tests/test_docker.py

@@ -6,7 +6,6 @@ Real Vuforia and CI runs one ``ci_pattern`` per job. See
 https://github.com/VWS-Python/vws-python-mock/issues/3540.
 """
 
-import json
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
@@ -15,14 +14,10 @@ import pytest
 from freezegun import freeze_time
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from vws_mock_contract_tests.invalid_json.helpers import (
-    assert_body_rejected,
-)
+from vws_mock_contract_tests.invalid_json.helpers import assert_body_rejected
 from vws_mock_contract_tests.utils import Endpoint
 from vws_mock_contract_tests.utils.assertions import (
     assert_valid_date_header,
-    assert_valid_transaction_id,
-    assert_vwq_failure,
     assert_vws_failure,
 )
 from vws_mock_contract_tests.utils.too_many_requests import (
@@ -30,71 +25,43 @@ from vws_mock_contract_tests.utils.too_many_requests import (
 )
 
 
-def test_not_json(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_not_json(endpoint: Endpoint) -> None:
     """Giving a body which is not JSON returns an error response."""
-    assert_body_rejected(
-        endpoint=endpoint, content=b"a", base_vwq_url=base_vwq_url
-    )
+    assert_body_rejected(endpoint=endpoint, content=b"a")
 
 
 @pytest.mark.parametrize(
-    argnames="content",
-    argvalues=[b"[]", b'"hello"', b"5", b"null", b"true"],
+    argnames="content", argvalues=[b"[]", b'"hello"', b"5", b"null", b"true"]
 )
-def test_not_an_object(
-    endpoint: Endpoint, content: bytes, base_vwq_url: str
-) -> None:
+def test_not_an_object(endpoint: Endpoint, content: bytes) -> None:
     """Giving valid JSON which is not an object returns an error
     response.
     """
-    assert_body_rejected(
-        endpoint=endpoint, content=content, base_vwq_url=base_vwq_url
-    )
+    assert_body_rejected(endpoint=endpoint, content=content)
 
 
-def test_not_utf_8(endpoint: Endpoint, base_vwq_url: str) -> None:
+def test_not_utf_8(endpoint: Endpoint) -> None:
     """Giving a JSON object which is not encoded as UTF-8 returns an
     error response.
     """
     content = '{"name": "café"}'.encode(encoding="latin-1")
-    assert_body_rejected(
-        endpoint=endpoint, content=content, base_vwq_url=base_vwq_url
-    )
+    assert_body_rejected(endpoint=endpoint, content=content)
 
 
 def test_empty_body(endpoint: Endpoint) -> None:
     """Giving an empty body to an endpoint which takes JSON returns an
     error response.
 
-    Real Vuforia gives a server error for an empty body given to the
-    target endpoints, but a bad request for one given to the reco counts
-    report endpoint or to the VuMark instance generation endpoint.
-
-    Unlike the other malformed bodies which this class sends, an empty
-    body is answered promptly by real Vuforia, so this test runs against
-    it.
+    The VuMark instance generation endpoint returns a bad request.
     """
-    takes_json_data = endpoint.auth_header_content_type == "application/json"
-    if not takes_json_data:
-        pytest.skip(reason="This endpoint does not take a JSON body.")
-
-    if endpoint.path_url.endswith("/instances"):
-        expected_status_code = HTTPStatus.BAD_REQUEST
-        expected_result_code = "BadRequest"
-    elif endpoint.path_url.endswith("/reports/recoCounts"):
-        expected_status_code = HTTPStatus.BAD_REQUEST
-        expected_result_code = "Fail"
-    else:
-        expected_status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        expected_result_code = "Fail"
-
+    expected_status_code = HTTPStatus.BAD_REQUEST
+    expected_result_code = "BadRequest"
     content = b""
     gmt = ZoneInfo(key="GMT")
     now = datetime.now(tz=gmt)
     time_to_freeze = now
     with freeze_time(time_to_freeze=time_to_freeze):
         date = rfc_1123_date()
-
     authorization_string = authorization_header(
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
@@ -104,14 +71,12 @@ def test_empty_body(endpoint: Endpoint) -> None:
         date=date,
         request_path=endpoint.path_url,
     )
-
     new_headers = {
         **endpoint.headers,
         "Authorization": authorization_string,
         "Date": date,
         "Content-Length": str(object=len(content)),
     }
-
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,
         path_url=endpoint.path_url,
@@ -123,14 +88,8 @@ def test_empty_body(endpoint: Endpoint) -> None:
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
     )
-
     response = new_endpoint.send()
-
-    # A server error is the expected response for some endpoints, so
-    # only treat one as transient where it is not expected.
-    if expected_status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
-        handle_server_errors(response=response)
-
+    handle_server_errors(response=response)
     assert_valid_date_header(response=response)
     assert_vws_failure(
         response=response,
@@ -139,13 +98,8 @@ def test_empty_body(endpoint: Endpoint) -> None:
     )
 
 
-def test_invalid_json_with_skewed_time(
-    endpoint: Endpoint, base_vwq_url: str
-) -> None:
+def test_invalid_json_with_skewed_time(endpoint: Endpoint) -> None:
     """Giving invalid JSON to endpoints returns error responses."""
-    # We use a skew of 70 because the maximum allowed skew for services is
-    # 5 minutes, and for query is 65 minutes. 70 is comfortably larger than
-    # the max of these two.
     date_skew_minutes = 70
     content = b"a"
     gmt = ZoneInfo(key="GMT")
@@ -153,7 +107,6 @@ def test_invalid_json_with_skewed_time(
     time_to_freeze = now + timedelta(minutes=date_skew_minutes)
     with freeze_time(time_to_freeze=time_to_freeze):
         date = rfc_1123_date()
-
     authorization_string = authorization_header(
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
@@ -163,14 +116,12 @@ def test_invalid_json_with_skewed_time(
         date=date,
         request_path=endpoint.path_url,
     )
-
     new_headers = {
         **endpoint.headers,
         "Authorization": authorization_string,
         "Content-Length": str(object=len(content)),
         "Date": date,
     }
-
     new_endpoint = Endpoint(
         base_url=endpoint.base_url,
         path_url=endpoint.path_url,
@@ -182,42 +133,11 @@ def test_invalid_json_with_skewed_time(
         access_key=endpoint.access_key,
         secret_key=endpoint.secret_key,
     )
-
     response = new_endpoint.send()
-
     handle_server_errors(response=response)
-
-    takes_json_data = endpoint.auth_header_content_type == "application/json"
-
     assert_valid_date_header(response=response)
-
-    if takes_json_data:
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.FORBIDDEN,
-            result_code="RequestTimeTooSkewed",
-        )
-        return
-
-    if endpoint.base_url == base_vwq_url:
-        response_json = json.loads(s=response.text)
-        assert isinstance(response_json, dict)
-        assert response_json.keys() == {
-            "transaction_id",
-            "result_code",
-        }
-        assert response_json["result_code"] == "RequestTimeTooSkewed"
-        assert_valid_transaction_id(response=response)
-        assert_vwq_failure(
-            response=response,
-            status_code=HTTPStatus.FORBIDDEN,
-            content_type="application/json",
-            cache_control=None,
-            www_authenticate=None,
-            connection="keep-alive",
-        )
-        return
-
-    assert response.status_code == HTTPStatus.BAD_REQUEST
-    assert not bool(response.text)
-    assert "Content-Type" not in response.headers
+    assert_vws_failure(
+        response=response,
+        status_code=HTTPStatus.FORBIDDEN,
+        result_code="RequestTimeTooSkewed",
+    )

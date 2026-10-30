@@ -7,7 +7,7 @@ requires = [
 
 [project]
 name = "vws-python-mock"
-description = "A mock for the Vuforia Web Services (VWS) API."
+description = "Mocks for Vuforia Model Targets and VuMark generation."
 readme = { file = "README.rst", content-type = "text/x-rst" }
 keywords = [
     "client",
@@ -38,17 +38,12 @@ dependencies = [
     "httpx>=0.27.0",
     "httpx2>=2.12",
     "mock-response-delay>=2026.9.12",
-    "numpy>=2.4.4",
-    "opencv-contrib-python-headless>=5.0.0.93",
-    "pillow>=12.2.0",
     "pydantic>=2.6",
-    "pyteenybrisque>=0.1.1",
     "requests>=2.32.3",
     "responses>=0.25.3",
     "respx>=0.21.0",
     "tzdata; sys_platform=='win32'",
     "vws-auth-tools>=2024.7.12",
-    "werkzeug>=3.1.2",
 ]
 optional-dependencies.server = [ "flask>=3.0.3", "vws-python-mock-server==0.0.0" ]
 urls.Documentation = "https://vws-python.github.io/vws-python-mock/"
@@ -134,7 +129,6 @@ dev = [
     "vws-mock-test-backends==0.0.0",
     "vws-python==2026.10.9",
     "vws-python-mock-server==0.0.0",
-    "vws-test-fixtures==2026.10.8",
     "vws-web-tools==2026.8.27",
     "yamlfix==1.19.1",
     "zizmor==1.31.1",
@@ -406,9 +400,7 @@ ignore_names = [
     "autoclass_content",
     "autodoc_member_order",
     # Used in TYPE_CHECKING for type hints
-    "CloudDatabaseDict",
     "copybutton_exclude",
-    "DatabaseDict",
     # Too difficult to test (see notes in the code)
     "DATE_RANGE_ERROR",
     "extensions",
@@ -444,6 +436,8 @@ ignore_names = [
     "setup",
     "source_suffix",
     "spelling_word_list_filename",
+    # RESPX Mocker reads its registered backend patch targets dynamically.
+    "targets",
     "templates_path",
     "towncrier_draft_autoversion_mode",
     "towncrier_draft_include_empty",
@@ -538,15 +532,11 @@ run.omit = [
     "tests/mock_vws/utils/__init__.py",
     "tests/mock_vws/utils/assertions.py",
     "tests/mock_vws/utils/backend_capabilities.py",
-    "tests/mock_vws/utils/cloud_databases.py",
     "tests/mock_vws/utils/model_target_response_policy.py",
     "tests/mock_vws/utils/model_target_retries.py",
-    "tests/mock_vws/utils/recognition_counts.py",
     "tests/mock_vws/utils/request_timeout_policy.py",
     "tests/mock_vws/utils/retries.py",
     "tests/mock_vws/utils/too_many_requests.py",
-    "tests/mock_vws/utils/unrouted_requests.py",
-    "tests/mock_vws/utils/usage_test_helpers.py",
 ]
 run.branch = true
 run.parallel = true

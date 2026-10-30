@@ -1,1 +1,0 @@
-"""Reco counts report tests."""

@@ -4,16 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from mock_vws.database import CloudDatabase
-from mock_vws.states import States
-from tests.mock_vws.fixtures.credentials import (
-    InactiveVuMarkCloudDatabase,
-    VuMarkCloudDatabase,
-)
 from tests.mock_vws.fixtures.real_credentials import (
     get_model_target_credentials,
 )
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
+from vws_mock_contract_tests.fixtures.credentials import (
+    InactiveVuMarkCloudDatabase,
+    VuMarkCloudDatabase,
+)
 
 
 @pytest.fixture(name="credentials_file", autouse=True, params=[False])
@@ -38,85 +35,20 @@ def fixture_credentials_file(
     _ = (tmp_path / "vuforia_secrets.env").write_text(data=contents)
 
 
-@pytest.fixture(
-    name="_vws_backend",
-    params=[VuforiaBackend.MOCK, VuforiaBackend.FLASK_IN_PROCESS],
-    ids=["in-memory", "flask"],
-)
-def fixture_backend_selection(
-    *, request: pytest.FixtureRequest
-) -> VuforiaBackend:
-    """Select credentials without setting up a service or making
-    requests.
-    """
-    backend = request.param
-    assert isinstance(backend, VuforiaBackend)
-    return backend
-
-
-@pytest.mark.usefixtures("_vws_backend")
-def test_mock_credentials_ignore_settings(
-    *,
-    vuforia_database: CloudDatabase,
-    inactive_cloud_database: CloudDatabase,
+def test_credentials_without_backend(
     vumark_vuforia_database: VuMarkCloudDatabase,
     inactive_vumark_database: InactiveVuMarkCloudDatabase,
 ) -> None:
-    """Both mock adapters supply usable credentials with invalid
-    settings.
+    """Implementation tests receive credentials without real settings or a
+    backend selector.
     """
-    assert vuforia_database.state == States.WORKING
-    assert inactive_cloud_database.state == States.PROJECT_INACTIVE
+    assert vumark_vuforia_database.server_access_key != ""
+    assert vumark_vuforia_database.server_secret_key != ""
+    assert inactive_vumark_database.server_access_key != ""
+    assert inactive_vumark_database.server_secret_key != ""
     assert (
-        vuforia_database.server_access_key
-        != inactive_cloud_database.server_access_key
-    )
-    assert (
-        vumark_vuforia_database.target_id
-        != vumark_vuforia_database.processing_target_id
-    )
-    assert (
-        inactive_vumark_database.server_access_key
-        != vumark_vuforia_database.server_access_key
-    )
-
-
-def test_standalone_mock_credentials(
-    *, vuforia_database: CloudDatabase
-) -> None:
-    """Implementation tests with no selected backend also need no settings."""
-    assert vuforia_database.state == States.WORKING
-    assert vuforia_database.server_access_key != ""
-
-
-@pytest.mark.parametrize(
-    argnames="credentials_file", argvalues=[True], indirect=True
-)
-@pytest.mark.usefixtures("_vws_backend")
-@pytest.mark.parametrize(
-    argnames="_vws_backend", argvalues=[VuforiaBackend.REAL], indirect=True
-)
-def test_real_credentials_use_settings(
-    *,
-    vuforia_database: CloudDatabase,
-    inactive_cloud_database: CloudDatabase,
-    vumark_vuforia_database: VuMarkCloudDatabase,
-    inactive_vumark_database: InactiveVuMarkCloudDatabase,
-) -> None:
-    """Only the real selection loads each account from its settings
-    file.
-    """
-    assert vuforia_database.database_id == "example_database_id"
-    assert vuforia_database.server_access_key == "example_server_access_key"
-    assert inactive_cloud_database.state == States.PROJECT_INACTIVE
-    assert (
-        inactive_cloud_database.client_access_key
-        == "example_inactive_client_access_key"
-    )
-    assert vumark_vuforia_database.target_id == "examplevumarktargetid"
-    assert (
-        inactive_vumark_database.server_access_key
-        == "example_inactive_vumark_server_access_key"
+        vumark_vuforia_database.server_access_key
+        != inactive_vumark_database.server_access_key
     )
 
 

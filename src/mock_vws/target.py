@@ -1,23 +1,14 @@
 """A fake implementation of a target for the Vuforia Web Services API."""
 
-import base64
 import datetime as dt
-import io
-import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import NotRequired, Self, TypedDict
+from typing import Self, TypedDict
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
-from PIL import ImageStat
 
 from mock_vws._constants import TargetStatuses
-from mock_vws._image_opening import open_image
-from mock_vws.target_raters import (
-    HardcodedTargetTrackingRater,
-    TargetTrackingRater,
-)
 
 
 class VuMarkTargetDict(TypedDict):
@@ -28,26 +19,6 @@ class VuMarkTargetDict(TypedDict):
     processing_time_seconds: int | float
     last_modified_date: str
     upload_date: str
-
-
-class ImageTargetDict(TypedDict):
-    """A dictionary type which represents an image target."""
-
-    name: str
-    width: float
-    image_base64: str
-    active_flag: bool
-    processing_time_seconds: int | float
-    application_metadata: str | None
-    target_id: str
-    last_modified_date: str
-    delete_date_optional: str | None
-    upload_date: str
-    tracking_rating: int
-    current_month_recos: NotRequired[int]
-    previous_month_recos: NotRequired[int]
-    total_recos: NotRequired[int]
-    reco_rating: NotRequired[str]
 
 
 @beartype
@@ -65,194 +36,11 @@ def _time_now() -> dt.datetime:
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, eq=True, kw_only=True)
-class ImageTarget:
-    """A Vuforia image target as managed in the Vuforia Target Manager.
-
-    ``current_month_recos``, ``previous_month_recos`` and ``total_recos`` are
-    the recognition counts which the target summary report and the reco counts
-    report show for this target. The mock does not count recognitions, so
-    these are whatever they are set to. Targets are created by API requests,
-    so set them with
-    :meth:`mock_vws.MockVWS.set_target_recognition_counts` rather than by
-    constructing a target.
-    """
-
-    active_flag: bool
-    application_metadata: str | None
-    image_value: bytes
-    name: str
-    processing_time_seconds: int | float
-    width: float
-    target_tracking_rater: TargetTrackingRater = field(compare=False)
-    current_month_recos: int = 0
-    delete_date: dt.datetime | None = None
-    last_modified_date: dt.datetime = field(default_factory=_time_now)
-    previous_month_recos: int = 0
-    reco_rating: str = ""
-    target_id: str = field(default_factory=_random_hex)
-    total_recos: int = 0
-    upload_date: dt.datetime = field(default_factory=_time_now)
-
-    @property
-    def _post_processing_status(self) -> TargetStatuses:
-        """Return the status of the target, or what it will be when
-        processing
-        is finished.
-
-        The status depends on the standard deviation of the color bands.
-        How VWS determines this is unknown, but it relates to how
-        suitable the target is for detection.
-        """
-        image_file = io.BytesIO(initial_bytes=self.image_value)
-        with open_image(fp=image_file) as image:
-            image_stat = ImageStat.Stat(image_or_list=image)
-            average_std_dev = statistics.mean(data=image_stat.stddev)
-
-        success_threshold = 5
-
-        if average_std_dev > success_threshold:
-            return TargetStatuses.SUCCESS
-
-        return TargetStatuses.FAILED
-
-    @property
-    def status(self) -> str:
-        """Return the status of the target.
-
-        For now this waits half a second (arbitrary) before changing the
-        status from 'processing' to 'failed' or 'success'.
-
-        The status depends on the standard deviation of the color bands.
-        How VWS determines this is unknown, but it relates to how
-        suitable the target is for detection.
-        """
-        processing_time = dt.timedelta(
-            seconds=float(self.processing_time_seconds),
-        )
-
-        timezone = self.upload_date.tzinfo
-        now = dt.datetime.now(tz=timezone)
-        time_since_change = now - self.last_modified_date
-
-        if time_since_change <= processing_time:
-            return TargetStatuses.PROCESSING.value
-
-        return self._post_processing_status.value
-
-    @property
-    def _post_processing_target_rating(self) -> int:
-        """The rating of the target after processing."""
-        return self.target_tracking_rater(image_content=self.image_value)
-
-    @property
-    def tracking_rating(self) -> int:
-        """Return the tracking rating of the target recognition image."""
-        pre_rating_time = dt.timedelta(
-            # That this is half of the total processing time is unrealistic.
-            # In VWS it is not a constant percentage: it was observed as
-            # roughly one second of a roughly thirty second processing time.
-            seconds=float(self.processing_time_seconds) / 2,
-        )
-
-        timezone = self.upload_date.tzinfo
-        now = dt.datetime.now(tz=timezone)
-        time_since_upload = now - self.upload_date
-
-        # The real VWS gives -1 for a short time after an upload, then the
-        # real rating, even while it is still processing.
-        #
-        # This is measured from the upload date rather than from the last
-        # modified date, so an update does not start a new -1 window. That
-        # matches the real VWS: an update returns a target to 'processing'
-        # and publishes the new image's rating straight away, without
-        # passing through -1 again.
-        if time_since_upload <= pre_rating_time:
-            return -1
-
-        return self._post_processing_target_rating
-
-    @classmethod
-    def from_dict(cls, target_dict: ImageTargetDict) -> Self:
-        """Load a target from a dictionary."""
-        timezone = ZoneInfo(key="GMT")
-        name = target_dict["name"]
-        active_flag = target_dict["active_flag"]
-        width = target_dict["width"]
-        image_base64 = target_dict["image_base64"]
-        image_value = base64.b64decode(s=image_base64)
-        processing_time_seconds = target_dict["processing_time_seconds"]
-        application_metadata = target_dict["application_metadata"]
-        target_id = target_dict["target_id"]
-        delete_date_optional = target_dict["delete_date_optional"]
-        if delete_date_optional is None:
-            delete_date = None
-        else:
-            delete_date = dt.datetime.fromisoformat(delete_date_optional)
-            delete_date = delete_date.replace(tzinfo=timezone)
-
-        last_modified_date = dt.datetime.fromisoformat(
-            target_dict["last_modified_date"],
-        ).replace(tzinfo=timezone)
-        upload_date = dt.datetime.fromisoformat(
-            target_dict["upload_date"],
-        ).replace(tzinfo=timezone)
-
-        target_tracking_rater = HardcodedTargetTrackingRater(
-            rating=target_dict["tracking_rating"],
-        )
-        return cls(
-            target_id=target_id,
-            name=name,
-            active_flag=active_flag,
-            width=width,
-            image_value=image_value,
-            processing_time_seconds=processing_time_seconds,
-            application_metadata=application_metadata,
-            delete_date=delete_date,
-            last_modified_date=last_modified_date,
-            upload_date=upload_date,
-            target_tracking_rater=target_tracking_rater,
-            current_month_recos=target_dict.get("current_month_recos", 0),
-            previous_month_recos=target_dict.get("previous_month_recos", 0),
-            total_recos=target_dict.get("total_recos", 0),
-            reco_rating=target_dict.get("reco_rating", ""),
-        )
-
-    def to_dict(self) -> ImageTargetDict:
-        """Dump a target to a dictionary which can be loaded as JSON."""
-        delete_date: str | None = None
-        if self.delete_date is not None:
-            delete_date = self.delete_date.isoformat()
-
-        image_base64 = base64.encodebytes(s=self.image_value).decode()
-
-        return {
-            "name": self.name,
-            "width": self.width,
-            "image_base64": image_base64,
-            "active_flag": self.active_flag,
-            "processing_time_seconds": float(self.processing_time_seconds),
-            "application_metadata": self.application_metadata,
-            "target_id": self.target_id,
-            "last_modified_date": self.last_modified_date.isoformat(),
-            "delete_date_optional": delete_date,
-            "upload_date": self.upload_date.isoformat(),
-            "tracking_rating": self.tracking_rating,
-            "current_month_recos": self.current_month_recos,
-            "previous_month_recos": self.previous_month_recos,
-            "total_recos": self.total_recos,
-            "reco_rating": self.reco_rating,
-        }
-
-
-@beartype(conf=BeartypeConf(is_pep484_tower=True))
-@dataclass(frozen=True, eq=True, kw_only=True)
 class VuMarkTarget:
     """
     A VuMark target as managed in the Vuforia Target Manager.
 
-    Unlike ImageTarget, VuMark targets do not require an image — they use a
-    VuMark template.
+    VuMark targets use a VuMark template.
     """
 
     name: str

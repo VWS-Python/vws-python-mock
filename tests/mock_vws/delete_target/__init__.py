@@ -1,1 +1,0 @@
-"""Delete target tests."""
